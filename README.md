@@ -4,7 +4,7 @@ Since most players of this version want mods but know there are few, I created t
 You can contribute to this repository at least by translating Arabic comments into your native language.
 
 My TikTok: 
-tiktok.com/@brcraft131313
+https://tiktok.com/@brcraft131313
 
 My YouTube: 
 https://m.youtube.com/@brcraft-v8v
