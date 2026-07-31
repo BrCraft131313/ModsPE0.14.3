@@ -4,6 +4,8 @@ Since most players of this version want mods but know there are few, I created t
 
 You can contribute to this repository at least by translating Arabic comments into your native language.
 
+If you notice me disappearing for a long or relatively long period, take the developer guide file and use AI to help you create mods.
+
 My TikTok: 
 https://tiktok.com/@brcraft131313
 
