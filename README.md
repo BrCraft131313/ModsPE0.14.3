@@ -7,7 +7,7 @@ My TikTok:
 tiktok.com/@brcraft131313
 
 My YouTube: 
-m.youtube.com/@brcraft-v8v
+https://m.youtube.com/@brcraft-v8v
 
 My Email : 
 brcraft323@gmail.com
