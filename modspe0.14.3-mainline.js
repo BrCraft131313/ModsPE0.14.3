@@ -1,22 +1,29 @@
-// بداية كود مود الأحذية الخارقة
+function procCmd(cmd) {
+    // أمر إزالة جميع التأثيرات
+    if (cmd == "effect -c") {
+        Entity.removeAllEffects(Player.getEntity());
+        clientMessage(ChatColor.GREEN + "All effects cleared!");
+        return;
+    }
 
-function modTick() {
-    var player = Player.getEntity();
-    
-    // فحص خانة الحذاء (Index 3 في الدروع)
-    var bootSlot = Player.getArmorSlot(3);
-    
-    // ID: 317 هو حذاء الذهب
-    if (bootSlot == 317) {
-        Player.setCanFly(true);
-        Entity.addEffect(player, MobEffect.movementSpeed, 20, 2, false, false);
-        Level.addParticle(ParticleType.flame, Player.getX(), Player.getY(), Player.getZ(), 0, 0, 0, 3);
-    } else {
-        // إذا لم يكن يرتدي الحذاء الذهبي وكانت اللعبة في وضع البقاء
-        if (Level.getGameMode() == 0) {
-            Player.setCanFly(false);
+    // أمر إعطاء التأثيرات
+    if (cmd.indexOf("effect ") == 0) {
+        var args = cmd.split(" ");
+        if (args.length >= 2) {
+            var effectId = parseInt(args[1]);
+            var duration = args[2] ? parseInt(args[2]) * 20 : 600; // المدة بالثواني (الافتراضي 30 ثانية)
+            var amplifier = args[3] ? parseInt(args[3]) : 0;      // مستوى التأثير (الافتراضي 0)
+            
+            // التحقق من وجود ID التأثير في نطاق التأثيرات المتاحة (من 1 إلى 23)
+            if (isNaN(effectId) || effectId < 1 || effectId > 23) {
+                clientMessage(ChatColor.RED + "[Warning] Effect ID " + args[1] + " does not exist!");
+                return;
+            }
+
+            Entity.addEffect(Player.getEntity(), effectId, duration, amplifier, false, true);
+            clientMessage(ChatColor.GREEN + "Effect " + effectId + " applied!");
+        } else {
+            clientMessage(ChatColor.RED + "Usage: /effect <id> [seconds] [amplifier] OR /effect -c");
         }
     }
 }
-
-// نهاية الكود
