@@ -1,41 +1,28 @@
 // ===============================================
-// ModPE Script: Home / Sethome System
+// ModPE Script: Vanish System
 // Version: 1.0 (Minecraft PE 0.14.3)
 // ===============================================
-
-// Variables to store home coordinates
-var homeX = null;
-var homeY = null;
-var homeZ = null;
-var isHomeSet = false;
 
 function procCmd(command) {
     var cmd = command.split(" ");
     var mainCmd = cmd[0].toLowerCase();
+    var subCmd = cmd[1] ? cmd[1].toLowerCase() : "";
 
-    // 1. Save home location command (/sethome)
-    if (mainCmd === "sethome") {
-        homeX = getPlayerX();
-        homeY = getPlayerY();
-        homeZ = getPlayerZ();
-        isHomeSet = true;
+    // فحص الأمر الرئيس /vanish
+    if (mainCmd === "vanish") {
 
-        // Round coordinates for display
-        var printX = Math.floor(homeX);
-        var printY = Math.floor(homeY);
-        var printZ = Math.floor(homeZ);
-
-        clientMessage("§a[HomeMod] Home location saved successfully! §7(X: " + printX + ", Y: " + printY + ", Z: " + printZ + ")");
-    }
-
-    // 2. Teleport to home command (/home)
-    else if (mainCmd === "home") {
-        if (isHomeSet === true && homeX !== null) {
-            // Teleport the player to the saved coordinates
-            setPosition(getPlayerEnt(), homeX, homeY, homeZ);
-            clientMessage("§b[HomeMod] Teleported to your home!");
-        } else {
-            clientMessage("§c[HomeMod] You haven't set a home location yet! Use /sethome first.");
+        // 1. أمر إيقاف الاختفاء (/vanish -c)
+        if (subCmd === "-c") {
+            // إزالة تأثير الاختفاء (MobEffect.invisibility ID هو 14)
+            Entity.removeEffect(getPlayerEnt(), 14);
+            clientMessage("§c[Vanish] Invisibility cleared! You are now visible.");
+        } 
+        
+        // 2. أمر تفعيل الاختفاء اللانهائي (/vanish)
+        else {
+            // إضافة تأثير الاختفاء لـ 999999 ثانية (تأثير لانهائي) بدرجة 1 وبدون جسيمات (particles)
+            Entity.addEffect(getPlayerEnt(), MobEffect.invisibility, 999999 * 20, 1, false, false);
+            clientMessage("§a[Vanish] Infinite invisibility activated!");
         }
     }
 }
