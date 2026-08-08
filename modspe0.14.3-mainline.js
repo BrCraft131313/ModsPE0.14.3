@@ -1,28 +1,54 @@
-// ===============================================
-// ModPE Script: Vanish System
-// Version: 1.0 (Minecraft PE 0.14.3)
-// ===============================================
+// ==========================================
+// ModPE 0.14.3 - Back On Death Mod
+// ==========================================
 
-function procCmd(command) {
-    var cmd = command.split(" ");
-    var mainCmd = cmd[0].toLowerCase();
-    var subCmd = cmd[1] ? cmd[1].toLowerCase() : "";
+var lastDeathX = null;
+var lastDeathY = null;
+var lastDeathZ = null;
+var hasDeathPos = false;
 
-    // فحص الأمر الرئيس /vanish
-    if (mainCmd === "vanish") {
+// [1] Track player death and save coordinates
+function deathHook(attacker, victim) {
+    if (victim == Player.getEntity()) {
+        lastDeathX = Entity.getX(victim);
+        lastDeathY = Entity.getY(victim);
+        lastDeathZ = Entity.getZ(victim);
+        hasDeathPos = true;
 
-        // 1. أمر إيقاف الاختفاء (/vanish -c)
-        if (subCmd === "-c") {
-            // إزالة تأثير الاختفاء (MobEffect.invisibility ID هو 14)
-            Entity.removeEffect(getPlayerEnt(), 14);
-            clientMessage("§c[Vanish] Invisibility cleared! You are now visible.");
-        } 
-        
-        // 2. أمر تفعيل الاختفاء اللانهائي (/vanish)
-        else {
-            // إضافة تأثير الاختفاء لـ 999999 ثانية (تأثير لانهائي) بدرجة 1 وبدون جسيمات (particles)
-            Entity.addEffect(getPlayerEnt(), MobEffect.invisibility, 999999 * 20, 1, false, false);
-            clientMessage("§a[Vanish] Infinite invisibility activated!");
+        clientMessage(ChatColor.RED + "You died! Type " + ChatColor.YELLOW + "/back" + ChatColor.RED + " to return to your death location.");
+    }
+}
+
+// [2] Process /back command
+function procCmd(cmd) {
+    var args = cmd.split(" ");
+    var command = args[0].toLowerCase();
+
+    if (command == "back") {
+        if (hasDeathPos) {
+            var player = Player.getEntity();
+            
+            // Teleport player to the last death position
+            Entity.setPosition(player, lastDeathX, lastDeathY, lastDeathZ);
+            
+            clientMessage(ChatColor.GREEN + "Teleported back to your death location!");
+            
+            // Spawn portal particles and sound on teleport
+            Level.addParticle(ParticleType.portal, lastDeathX, lastDeathY + 1, lastDeathZ, 0, 0, 0, 20);
+            Level.playSound(lastDeathX, lastDeathY, lastDeathZ, "mob.endermen.portal", 1.0, 1.0);
+            
+            // Reset state to prevent repeated teleports to the same spot
+            hasDeathPos = false;
+        } else {
+            clientMessage(ChatColor.RED + "No death location saved!");
         }
     }
+}
+
+// [3] Reset data on game leave
+function leaveGame() {
+    lastDeathX = null;
+    lastDeathY = null;
+    lastDeathZ = null;
+    hasDeathPos = false;
 }
