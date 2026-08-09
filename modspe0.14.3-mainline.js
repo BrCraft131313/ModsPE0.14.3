@@ -1,15 +1,15 @@
-// تسجيل وصفة صناعة بلوكة البوابة (Portal Block ID: 90)
+// مود صناعة السادل (Saddle Recipe)
 Item.addShapedRecipe(
-    90, // الناتج: ID بلوكة البوابة المخفية
-    1,  // الكمية الناتجة
-    0,  // الـ Damage / Data value
+    329, // الناتج: Saddle
+    1,   // الكمية
+    0,   // Damage
     [
-        "AAA",
-        "ABA",
-        "AAA"
+        " L ",
+        "LIL",
+        "   "
     ],
     [
-        'A', 49, 0,  // A = Obsidian (ID: 49)
-        'B', 259, 0  // B = Flint and Steel (ID: 259)
+        'L', 334, 0, // Leather (ID: 334)
+        'I', 265, 0  // Iron Ingot (ID: 265)
     ]
 );
