@@ -1,47 +1,428 @@
 // ===============================================
-// ModPE Script: Teleport Tool (/tp)
-// Target: Minecraft PE 0.14.3
+// ModPE Script: World Cleaner & Complete ID Finder
+// Target: Minecraft PE 0.14.3 (Strict Inventory Verified)
 // ===============================================
 
+var ITEM_DATABASE = {
+    // --- Special & Hidden Blocks ---
+    "invisible bedrock": 95,
+    "glowing obsidian": 246,
+    "nether reactor core": 247,
+    "update block": 248,
+    "ateupd block": 249,
+    "reserved6": 255,
+    "mob spawner": 52,
+    "fire": 51,
+    "flowing water": 8,
+    "still water": 9,
+    "flowing lava": 10,
+    "still lava": 11,
+
+    // --- Standard Building Blocks ---
+    "air": 0,
+    "stone": 1,
+    "granite": "1:1",
+    "polished granite": "1:2",
+    "diorite": "1:3",
+    "polished diorite": "1:4",
+    "andesite": "1:5",
+    "polished andesite": "1:6",
+    "grass block": 2,
+    "dirt": 3,
+    "coarse dirt": "3:1",
+    "podzol": "3:2",
+    "cobblestone": 4,
+    "oak wood plank": 5,
+    "spruce wood plank": "5:1",
+    "birch wood plank": "5:2",
+    "jungle wood plank": "5:3",
+    "acacia wood plank": "5:4",
+    "dark oak wood plank": "5:5",
+    "oak sapling": 6,
+    "spruce sapling": "6:1",
+    "birch sapling": "6:2",
+    "jungle sapling": "6:3",
+    "acacia sapling": "6:4",
+    "dark oak sapling": "6:5",
+    "bedrock": 7,
+    "sand": 12,
+    "red sand": "12:1",
+    "gravel": 13,
+    "gold ore": 14,
+    "iron ore": 15,
+    "coal ore": 16,
+    "oak log": 17,
+    "spruce log": "17:1",
+    "birch log": "17:2",
+    "jungle log": "17:3",
+    "acacia log": 162,
+    "dark oak log": "162:1",
+    "oak leaves": 18,
+    "spruce leaves": "18:1",
+    "birch leaves": "18:2",
+    "jungle leaves": "18:3",
+    "acacia leaves": 161,
+    "dark oak leaves": "161:1",
+    "sponge": 19,
+    "wet sponge": "19:1",
+    "glass": 20,
+    "lapis ore": 21,
+    "lapis block": 22,
+    "dispenser": 23,
+    "sandstone": 24,
+    "chiseled sandstone": "24:1",
+    "smooth sandstone": "24:2",
+    "note block": 25,
+    "powered rail": 27,
+    "detector rail": 28,
+    "sticky piston": 29,
+    "cobweb": 30,
+    "tall grass": 31,
+    "dead bush": 32,
+    "piston": 33,
+    "wool": 35,
+    "dandelion": 37,
+    "poppy": 38,
+    "brown mushroom": 39,
+    "red mushroom": 40,
+    "gold block": 41,
+    "iron block": 42,
+    "double stone slab": 43,
+    "stone slab": 44,
+    "brick block": 45,
+    "tnt": 46,
+    "bookshelf": 47,
+    "mossy cobblestone": 48,
+    "obsidian": 49,
+    "torch": 50,
+    "oak stairs": 53,
+    "chest": 54,
+    "diamond ore": 56,
+    "diamond block": 57,
+    "crafting table": 58,
+    "farmland": 60,
+    "furnace": 61,
+    "ladder": 65,
+    "rail": 66,
+    "cobblestone stairs": 67,
+    "lever": 69,
+    "stone pressure plate": 70,
+    "wooden pressure plate": 72,
+    "redstone ore": 73,
+    "redstone torch": 76,
+    "stone button": 77,
+    "snow layer": 78,
+    "ice": 79,
+    "snow block": 80,
+    "cactus": 81,
+    "clay block": 82,
+    "fence": 85,
+    "pumpkin": 86,
+    "netherrack": 87,
+    "soul sand": 88,
+    "glowstone": 89,
+    "jack o lantern": 91,
+    "trapdoor": 96,
+    "monster egg": 97,
+    "stone bricks": 98,
+    "mossy stone bricks": "98:1",
+    "cracked stone bricks": "98:2",
+    "chiseled stone bricks": "98:3",
+    "brown mushroom block": 99,
+    "red mushroom block": 100,
+    "iron bars": 101,
+    "glass pane": 102,
+    "melon block": 103,
+    "vines": 106,
+    "fence gate": 107,
+    "brick stairs": 108,
+    "stone brick stairs": 109,
+    "mycelium": 110,
+    "lily pad": 111,
+    "nether brick block": 112,
+    "nether brick fence": 113,
+    "nether brick stairs": 114,
+    "enchanting table": 116,
+    "end portal frame": 120,
+    "end stone": 121,
+    "redstone lamp": 123,
+    "dropper": 125,
+    "activator rail": 126,
+    "sandstone stairs": 128,
+    "emerald ore": 129,
+    "tripwire hook": 131,
+    "emerald block": 133,
+    "spruce stairs": 134,
+    "birch stairs": 135,
+    "jungle stairs": 136,
+    "cobblestone wall": 139,
+    "wooden button": 143,
+    "anvil": 145,
+    "trapped chest": 146,
+    "light weighted pressure plate": 147,
+    "heavy weighted pressure plate": 148,
+    "daylight detector": 151,
+    "redstone block": 152,
+    "quartz ore": 153,
+    "hopper block": 154,
+    "quartz block": 155,
+    "chiseled quartz block": "155:1",
+    "pillar quartz block": "155:2",
+    "quartz stairs": 156,
+    "double wooden slab": 157,
+    "wooden slab": 158,
+    "stained clay": 159,
+    "stained glass pane": 160,
+    "acacia stairs": 163,
+    "dark oak stairs": 164,
+    "slime block": 165,
+    "iron trapdoor": 167,
+    "hay bale": 170,
+    "carpet": 171,
+    "hardened clay": 172,
+    "coal block": 173,
+    "packed ice": 174,
+    "sunflower": 175,
+    "inverted daylight detector": 178,
+    "red sandstone": 179,
+    "red sandstone stairs": 180,
+    "double red sandstone slab": 181,
+    "red sandstone slab": 182,
+    "spruce fence gate": 183,
+    "birch fence gate": 184,
+    "jungle fence gate": 185,
+    "dark oak fence gate": 186,
+    "acacia fence gate": 187,
+    "spruce fence": 188,
+    "birch fence": 189,
+    "jungle fence": 190,
+    "dark oak fence": 191,
+    "acacia fence": 192,
+    "grass path": 198,
+    "stonecutter": 245,
+
+    // --- Main Inventory Items & Tools ---
+    "iron shovel": 256,
+    "iron pickaxe": 257,
+    "iron axe": 258,
+    "flint and steel": 259,
+    "apple": 260,
+    "bow": 261,
+    "arrow": 262,
+    "coal": 263,
+    "charcoal": "263:1",
+    "diamond": 264,
+    "iron ingot": 265,
+    "gold ingot": 266,
+    "iron sword": 267,
+    "wooden sword": 268,
+    "wooden shovel": 269,
+    "wooden pickaxe": 270,
+    "wooden axe": 271,
+    "stone sword": 272,
+    "stone shovel": 273,
+    "stone pickaxe": 274,
+    "stone axe": 275,
+    "diamond sword": 276,
+    "diamond shovel": 277,
+    "diamond pickaxe": 278,
+    "diamond axe": 279,
+    "stick": 280,
+    "bowl": 281,
+    "mushroom stew": 282,
+    "golden sword": 283,
+    "golden shovel": 284,
+    "golden pickaxe": 285,
+    "golden axe": 286,
+    "string": 287,
+    "feather": 288,
+    "gunpowder": 289,
+    "wooden hoe": 290,
+    "stone hoe": 291,
+    "iron hoe": 292,
+    "diamond hoe": 293,
+    "golden hoe": 294,
+    "wheat seeds": 295,
+    "wheat": 296,
+    "bread": 297,
+    "leather helmet": 298,
+    "leather chestplate": 299,
+    "leather leggings": 300,
+    "leather boots": 301,
+    "chainmail helmet": 302,
+    "chainmail chestplate": 303,
+    "chainmail leggings": 304,
+    "chainmail boots": 305,
+    "iron helmet": 306,
+    "iron chestplate": 307,
+    "iron leggings": 308,
+    "iron boots": 309,
+    "diamond helmet": 310,
+    "diamond chestplate": 311,
+    "diamond leggings": 312,
+    "diamond boots": 313,
+    "golden helmet": 314,
+    "golden chestplate": 315,
+    "golden leggings": 316,
+    "golden boots": 317,
+    "flint": 318,
+    "raw porkchop": 319,
+    "cooked porkchop": 320,
+    "painting": 321,
+    "golden apple": 322,
+    "sign": 323,
+    "wooden door": 324,
+    "bucket": 325,
+    "water bucket": 326,
+    "lava bucket": 327,
+    "minecart": 328,
+    "saddle": 329,
+    "iron door": 330,
+    "redstone": 331,
+    "snowball": 332,
+    "boat": 333,
+    "leather": 334,
+    "milk bucket": 335,
+    "brick item": 336,
+    "clay": 337,
+    "sugar cane": 338,
+    "paper": 339,
+    "book": 340,
+    "slimeball": 341,
+    "chest minecart": 342,
+    "egg": 344,
+    "compass": 345,
+    "fishing rod": 346,
+    "clock": 347,
+    "glowstone dust": 348,
+    "raw fish": 349,
+    "cooked fish": 350,
+    "dye": 351,
+    "bone": 352,
+    "sugar": 353,
+    "cake": 354,
+    "bed": 355,
+    "repeater": 356,
+    "cookie": 357,
+    "shears": 359,
+    "melon": 360,
+    "pumpkin seeds": 361,
+    "melon seeds": 362,
+    "raw beef": 363,
+    "steak": 364,
+    "raw chicken": 365,
+    "cooked chicken": 366,
+    "rotten flesh": 367,
+    "ender pearl": 368,
+    "blaze rod": 369,
+    "ghast tear": 370,
+    "gold nugget": 371,
+    "nether wart": 372,
+    "potion": 373,
+    "glass bottle": 374,
+    "spider eye": 375,
+    "fermented spider eye": 376,
+    "blaze powder": 377,
+    "magma cream": 378,
+    "brewing stand": 379,
+    "cauldron": 380,
+    "glistering melon": 382,
+    "spawn egg": 383,
+    "experience bottle": 384,
+    "emerald": 388,
+    "item frame": 389,
+    "flower pot": 390,
+    "carrot": 391,
+    "potato": 392,
+    "baked potato": 393,
+    "poisonous potato": 394,
+    "golden carrot": 396,
+    "mob head": 397,
+    "pumpkin pie": 400,
+    "nether brick": 405,
+    "quartz": 406,
+    "hopper": 410,
+    "rabbit": 411,
+    "cooked rabbit": 412,
+    "rabbit stew": 413,
+    "rabbit foot": 414,
+    "rabbit hide": 415,
+    "leather horse armor": 416,
+    "iron horse armor": 417,
+    "golden horse armor": 418,
+    "diamond horse armor": 419,
+    "lead": 420,
+    "name tag": 421,
+    "raw mutton": 423,
+    "cooked mutton": 424,
+    "spruce door": 427,
+    "birch door": 428,
+    "jungle door": 429,
+    "acacia door": 430,
+    "dark oak door": 431,
+    "beetroot": 457,
+    "beetroot seeds": 458,
+    "beetroot soup": 459
+};
+
 /**
- * التقاط الأوامر المدخلة في الشات
+ * Hook لعلاج أوامر الشات
  */
 function chatHook(str) {
     var args = str.split(" ");
-    var cmd = args[0];
+    var cmd = args[0].toLowerCase();
 
-    if (cmd === "/tp") {
-        preventDefault(); // منع إرسال الأمر للشات العام
+    // ===============================================
+    // 1. أمر التنظيف /clean
+    // ===============================================
+    if (cmd === "/clean") {
+        preventDefault();
+        
+        var allEntities = Entity.getAll();
+        var removedCount = 0;
 
-        // عرض الإحداثيات الحالية: /tp info
-        if (args.length === 2 && args[1] === "info") {
-            var currentX = Math.floor(Player.getX());
-            var currentY = Math.floor(Player.getY());
-            var currentZ = Math.floor(Player.getZ());
+        for (var i = 0; i < allEntities.length; i++) {
+            var ent = allEntities[i];
+            if (Entity.getEntityTypeId(ent) === 64) {
+                Entity.remove(ent);
+                removedCount++;
+            }
+        }
 
-            clientMessage(ChatColor.GOLD + "[TP Mod] Current Location:");
-            clientMessage(ChatColor.AQUA + "X: " + currentX + " | Y: " + currentY + " | Z: " + currentZ);
+        clientMessage(ChatColor.GREEN + "[Clean Mod] Removed " + removedCount + " dropped item(s) from the world!");
+        return;
+    }
+
+    // ===============================================
+    // 2. أمر لمعرفة الـ ID الخاص بالبلوكة /id <name>
+    // ===============================================
+    if (cmd === "/id") {
+        preventDefault();
+
+        if (args.length < 2) {
+            clientMessage(ChatColor.YELLOW + "Usage: /id <Item/Block Name>");
+            clientMessage(ChatColor.GRAY + "Example: /id invisible bedrock");
             return;
         }
 
-        // الانتقال للإحداثيات المحنّدة: /tp X Y Z
-        if (args.length === 4) {
-            var targetX = parseFloat(args[1]);
-            var targetY = parseFloat(args[2]);
-            var targetZ = parseFloat(args[3]);
+        var queryName = str.substring(4).trim().toLowerCase();
+        
+        if (ITEM_DATABASE[queryName] !== undefined) {
+            var foundId = ITEM_DATABASE[queryName];
+            clientMessage(ChatColor.GREEN + "[ID Finder] " + queryName.toUpperCase() + " -> ID: " + foundId);
+            return;
+        }
 
-            if (isNaN(targetX) || isNaN(targetY) || isNaN(targetZ)) {
-                clientMessage(ChatColor.RED + "[TP Mod] Error: Coordinates must be valid numbers!");
-                return;
-            }
+        var systemId = Item.internalNameToId(queryName);
+        if (systemId === -1 || systemId === 0) {
+            systemId = Item.translatedNameToId(queryName);
+        }
 
-            // تنفيذ الانتقال الآني للاعب
-            Entity.setPosition(Player.getEntity(), targetX, targetY, targetZ);
-            clientMessage(ChatColor.GREEN + "[TP Mod] Teleported to: " + targetX + ", " + targetY + ", " + targetZ);
+        if (systemId !== -1 && systemId !== 0) {
+            clientMessage(ChatColor.GREEN + "[ID Finder] " + queryName + " -> ID: " + systemId);
         } else {
-            clientMessage(ChatColor.YELLOW + "Usage:");
-            clientMessage(ChatColor.WHITE + "/tp X Y Z (Teleport to coordinates)");
-            clientMessage(ChatColor.WHITE + "/tp info (Show current coordinates)");
+            clientMessage(ChatColor.RED + "[ID Finder] Could not find ID for: " + queryName);
+            clientMessage(ChatColor.GRAY + "Try checking spelling or use standard Minecraft names.");
         }
     }
-}
+    }
