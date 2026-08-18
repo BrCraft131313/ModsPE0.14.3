@@ -9,9 +9,9 @@ If you notice me disappearing for a long or relatively long period, take the dev
 To Use modspe0.14.3-projectupdate.sh
 Download Termux From F-Droid 
 Then write
-’’’bash
+’ ’ ’bash
 termux-setup-storage
-’’’
+’ ’ ’
 Then go To script bath (example: /storage/shared/Download/)
 Then write 
 ’’’bash
