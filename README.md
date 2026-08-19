@@ -2,7 +2,7 @@
 This is A Repository For Minecraft PE 0.14.3 Mods
 Since most players of this version want mods but know there are few, I created this repository to gather all my mods for this version
 
-You can contribute to this repository at least by translating Arabic (Or English) comments into your native language.
+You can contribute to this repository at least by translating Arabic (Or English) comments into your native language (You need to fork this repost so the Arabic comments don't get lost. ).
 
 If you notice me disappearing for a long or relatively long period, take the developer guide file and use AI to help you create mods.
 
