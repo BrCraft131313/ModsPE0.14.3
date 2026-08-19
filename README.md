@@ -18,7 +18,7 @@ Then write
 
 chmod +x modspe0.14.3-projectupdate.sh && bash modspe0.14.3-projectupdate.sh
 
-The Enjoy
+Then Enjoy
 !
 
 My TikTok: 
