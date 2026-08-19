@@ -1,0 +1,1147 @@
+// ==========================================
+// 1. الدوال العامة (Global Functions)
+// ==========================================
+
+// إضافة عنصر إلى حقيبة اللاعب (معرف العنصر، العدد، القيمة الفرعية/Data)
+addItemInventory(par1int, par2int, par3int);
+
+// تغيير شكل/سكن الكائن الحي (الكائن، مسار الصورة)
+bl_setMobSkin(par1Object, par2String);
+
+// استدعاء/رسوب كائن حي في الإحداثيات (X, Y, Z, نوع الكائن، مسار السكن)
+bl_spawnMob(par1double, par2double, par3double, par4int, par5String);
+
+// إرسال رسالة شات محلية للاعب
+clientMessage(par1String);
+
+// إحداث انفجار في موقع محدد (X, Y, Z, القوة، هل يسبب حريق؟)
+explode(par1double, par2double, par3double, par4double, par5boolean);
+
+// الجلب: العنصر الممسوك حالياً بيد اللاعب
+getCarriedItem();
+
+// الجلب: المستوى الحالي للاعب (Level/XP)
+getLevel();
+
+// الجلب: زاوية النظر العمودية للكائن (Pitch)
+getPitch(par1Object);
+
+// الجلب: المعرف الخاص بكيان اللاعب (Player Entity ID)
+getPlayerEnt();
+
+// الجلب: إحداثيات موقع اللاعب (X, Y, Z)
+getPlayerX();
+getPlayerY();
+getPlayerZ();
+
+// الجلب: نوع البلوكة في إحداثيات محددة (X, Y, Z)
+getTile(par1int, par2int, par3int);
+
+// الجلب: زاوية النظر الأفقية للكائن (Yaw)
+getYaw(par1Object);
+
+// إلغاء الحدث الافتراضي للعبة (يُستخدم داخل الـ Hooks)
+preventDefault();
+
+// طباعة رسالة في السجل (Console/Log)
+print(par1String);
+
+// إجبار كائن على ركوب كائن آخر (الراكب، المركوب)
+rideAnimal(par1Object, par2Object);
+
+// تفعيل/تعطيل وضع الليل
+setNightMode(par1boolean);
+
+// تغيير موقع كائن إلى إحداثيات مطلقة (الكائن، X, Y, Z)
+setPosition(par1Object, par2double, par3double, par4double);
+
+// تغيير موقع كائن نسبياً عن موقعه الحالي
+setPositionRelative(par1Object, par2double, par3double, par4double);
+
+// تغيير زوايا اتجاه النظر للكائن (الكائن، Yaw, Pitch)
+setRot(par1Object, par2double, par3double);
+
+// تغيير نوع البلوكة في مكان محدد (X, Y, Z, ID البلوكة، Data البلوكة)
+setTile(par1int, par2int, par3int, par4int, par5int);
+
+// تغيير سرعة الكائن في المحاور (X, Y, Z)
+setVelX(par1Object, par2double);
+setVelY(par1Object, par2double);
+setVelZ(par1Object, par2double);
+
+// استدعاء دجاجة (X, Y, Z, مسار السكن)
+spawnChicken(par1double, par2double, par3double, par4String);
+
+// استدعاء بقرة (X, Y, Z, مسار السكن)
+spawnCow(par1double, par2double, par3double, par4String);
+
+// استدعاء خنزير زومبي (X, Y, Z, العنصر الممسوك، مسار السكن)
+spawnPigZombie(par1double, par2double, par3double, par4int, par5String);
+
+
+// ==========================================
+// 2. واجهة ModPE (وظائف المحرك والتعديلات)
+// ==========================================
+
+// تفريغ جدول الدوال الوهمية للديباجينج (اسم الفئة، العنوان)
+ModPE.dumpVtable(par1String, par2int);
+
+// قراءة مصفوفة بايتات من حزمة التكستشر
+ModPE.getBytesFromTexturePack(par1String);
+
+// جلب النص المترجم حسب مفتاح الترجمة
+ModPE.getI18n(par1String);
+
+// جلب اللغة الحالية للعبة
+ModPE.getLanguage();
+
+// جلب إصدار لعبة ماينكرافت الحالي
+ModPE.getMinecraftVersion();
+
+// تعديل أو إضافة نص مترجم جديد (المفتاح، النص)
+ModPE.langEdit(par1String, par2String);
+
+// الخروج من العالم الحالي إلى القائمة الرئيسية
+ModPE.leaveGame();
+
+// كتابة ملاحظة في سجل النظام (Log)
+ModPE.log(par1String);
+
+// فتح مجرى قراءة من ملف داخل حزمة التكستشر
+ModPE.openInputStreamFromTexturePack(par1String);
+
+// استبدال ملف تكستشر بملف آخر (المسار القديم، المسار الجديد)
+ModPE.overrideTexture(par1String, par2String);
+
+// قراءة بيانات محفوظة بسلسلة نصية (Key)
+ModPE.readData(par1String);
+
+// حذف بيانات محفوظة (Key)
+ModPE.removeData(par1String);
+
+// إعادة إعادة ضبط مجال الرؤية (FOV) للافتراضي
+ModPE.resetFov();
+
+// إعادة ضبط جميع الصور والتكستشرات للافتراضي
+ModPE.resetImages();
+
+// حفظ بيانات على الجهاز (Key, Value)
+ModPE.saveData(par1String, par2String);
+
+// تحديد أو دخول عالم محدد برمجياً
+ModPE.selectLevel(par1String);
+
+// تحديد الكائن الذي تركز عليه الكاميرا
+ModPE.setCamera(par1Object);
+
+// تعريف طعام جديد (ID, التكستشر، نقاط الشبع، معدل التشبّع، الاسم، التكستشر الفرعي)
+ModPE.setFoodItem(par1int, par2String, par3int, par4int, par5String, par6int);
+
+// تغيير زاوية مجال الرؤية (FOV)
+ModPE.setFov(par1double);
+
+// تغيير سرعة زمن اللعبة (مضاعفة/تبطيء اللعب)
+ModPE.setGameSpeed(par1double);
+
+// ضبط ملف تكستشر واجهات البلوكات
+ModPE.setGuiBlocks(par1String);
+
+// تعريف عنصر جديد في اللعبة (ID, التكستشر، الفهرس، الاسم، أقصى حد للتكدس)
+ModPE.setItem(par1int, par2String, par3int, par4String, par5int);
+
+// ضبط تكستشر العناصر العام
+ModPE.setItems(par1String);
+
+// ضبط تكستشر التضاريس/البلوكات
+ModPE.setTerrain(par1String);
+
+// إظهار/إخفاء واجهة تصحيح الأخطاء (Debug UI)
+ModPE.setUiRenderDebug(par1boolean);
+
+// إظهار رسالة تلميح صغيرة أسفل الشاشة (Tip)
+ModPE.showTipMessage(par1String);
+
+// أخذ لقطة شاشة وحفظها باسم محدد
+ModPE.takeScreenshot(par1String);
+
+
+// ==========================================
+// 3. فئة العالم (Level Class)
+// ==========================================
+
+// إضافة جزيئات/تأثيرات بصرية في العالم (النوع، X, Y, Z, السرعة X, Y, Z, حجم الجزيء)
+Level.addParticle(par1int, par2double, par3double, par4double, par5double, par6double, par7double, par8int);
+
+// تحويل ID المناخ (Biome) إلى اسمه النصي
+Level.biomeIdToName(par1int);
+
+// الفحص: هل يمكن رؤية السماء مباشرة من هذه الإحداثيات؟
+Level.canSeeSky(par1int, par2int, par3int);
+
+// تدمير بلوكة مع خيار إسقاط مواردها أم لا (X, Y, Z, هل تسقط موارد؟)
+Level.destroyBlock(par1int, par2int, par3int, par4boolean);
+
+// إسقاط عنصر على الأرض في إحداثيات (X, Y, Z, الدفع، ID العنصر، العدد، Data)
+Level.dropItem(par1double, par2double, par3double, par4double, par5int, par6int, par7int);
+
+// إحداث انفجار عبر فئة العالم
+Level.explode(par1double, par2double, par3double, par4double, par5boolean);
+
+// جلب عنوان العالم/السيرفر
+Level.getAddress();
+
+// جلب معرف المناخ في إحداثيات (X, Z)
+Level.getBiome(par1int, par2int);
+
+// جلب اسم المناخ في إحداثيات (X, Z)
+Level.getBiomeName(par1int, par2int);
+
+// جلب مستوى الإضاءة في إحداثيات (X, Y, Z)
+Level.getBrightness(par1int, par2int, par3int);
+
+// جلب ID العنصر داخل خانة الصندوق (X, Y, Z, رقم الخانة)
+Level.getChestSlot(par1int, par2int, par3int, par4int);
+
+// جلب عدد العناصر في خانة الصندوق
+Level.getChestSlotCount(par1int, par2int, par3int, par4int);
+
+// جلب الاسم المخصص لخانة الصندوق
+Level.getChestSlotCustomName(par1int, par2int, par3int, par4int);
+
+// جلب قيمة الـ Data للعنصر في خانة الصندوق
+Level.getChestSlotData(par1int, par2int, par3int, par4int);
+
+// جلب الـ Data للبلوكة عند (X, Y, Z)
+Level.getData(par1int, par2int, par3int);
+
+// جلب مستوى صعوبة اللعبة الحالي
+Level.getDifficulty();
+
+// جلب ID العنصر في خانة الفرن (X, Y, Z, رقم الخانة)
+Level.getFurnaceSlot(par1int, par2int, par3int, par4int);
+
+// جلب عدد العناصر في خانة الفرن
+Level.getFurnaceSlotCount(par1int, par2int, par3int, par4int);
+
+// جلب الـ Data للعنصر في خانة الفرن
+Level.getFurnaceSlotData(par1int, par2int, par3int, par4int);
+
+// جلب نمط اللعب الحالي (Creative, Survival... إلخ)
+Level.getGameMode();
+
+// جلب لون العشب في إحداثيات محددة
+Level.getGrassColor(par1int, par2int);
+
+// جلب شدة البرق الحالية
+Level.getLightningLevel();
+
+// جلب شدة المطر الحالية
+Level.getRainLevel();
+
+// جلب النص المكتوب على اللافتة (X, Y, Z, رقم السطر)
+Level.getSignText(par1int, par2int, par3int, par4int);
+
+// جلب نوع الكائن المتولد من السبونر (X, Y, Z)
+Level.getSpawnerEntityType(par1int, par2int, par3int);
+
+// جلب ID البلوكة في المكان المحدد
+Level.getTile(par1int, par2int, par3int);
+
+// جلب وقت العالم الحالي (بالتيك ticks)
+Level.getTime();
+
+// جلب مسار المجلد الخاص بالعالم
+Level.getWorldDir();
+
+// جلب اسم العالم الحالي
+Level.getWorldName();
+
+// تشغيل صوت في إحداثيات محددة (X, Y, Z, اسم الصوت، العلو، النبرة/Pitch)
+Level.playSound(par1double, par2double, par3double, par4String, par5double, par6double);
+
+// تشغيل صوت مرتبط بكيان معين (الكائن، اسم الصوت، العلو، النبرة)
+Level.playSoundEnt(par1Object, par2String, par3double, par4double);
+
+// تعيين عنصر داخل خانة بالصندوق (X,Y,Z, الخانة، ID العنصر، Data, العدد)
+Level.setChestSlot(par1int, par2int, par3int, par4int, par5int, par6int, par7int);
+
+// تغيير الاسم المخصص لخانة الصندوق
+Level.setChestSlotCustomName(par1int, par2int, par3int, par4int, par5String);
+
+// تعيين مستوى صعوبة اللعبة
+Level.setDifficulty(par1int);
+
+// تعيين عنصر داخل خانة بالفرن
+Level.setFurnaceSlot(par1int, par2int, par3int, par4int, par5int, par6int, par7int);
+
+// تغيير نمط اللعب (GameMode)
+Level.setGameMode(par1int);
+
+// تغيير لون العشب في منطقة محددة (X, Z, اللون)
+Level.setGrassColor(par1int, par2int, par3int);
+
+// تغيير مستوى شحن/شدة البرق
+Level.setLightningLevel(par1double);
+
+// تفعيل أو تعطيل وضع الليل
+Level.setNightMode(par1boolean);
+
+// تغيير شدة المطر
+Level.setRainLevel(par1double);
+
+// كتابة نص على السطر المحدد في لافتة (X, Y, Z, رقم السطر، النص)
+Level.setSignText(par1int, par2int, par3int, par4int, par5String);
+
+// تعيين نقطة الرسبون (Spawn Point) للعالم
+Level.setSpawn(par1int, par2int, par3int);
+
+// تعيين نوع الكائن الذي يخرجه السبونر (X, Y, Z, ID الكائن)
+Level.setSpawnerEntityType(par1int, par2int, par3int, par4int);
+
+// تعيين بلوكة في مكان محدد (X, Y, Z, ID البلوكة، Data)
+Level.setTile(par1int, par2int, par3int, par4int, par5int);
+
+// تغيير الوقت في العالم
+Level.setTime(par1int);
+
+// استدعاء دجاجة عبر فئة العالم
+Level.spawnChicken(par1double, par2double, par3double, par4String);
+
+// استدعاء بقرة عبر فئة العالم
+Level.spawnCow(par1double, par2double, par3double, par4String);
+
+// استدعاء كائن بصفات محددة (X, Y, Z, ID الكائن، مسار السكن)
+Level.spawnMob(par1double, par2double, par3double, par4int, par5String);
+
+
+// ==========================================
+// 4. فئة اللاعب (Player Class)
+// ==========================================
+
+// إضافة نقاط خبرة (XP) للاعب
+Player.addExp(par1int);
+
+// إضافة عنصر إلى قائمة الكريتيف للاعب
+Player.addItemCreativeInv(par1int, par2int, par3int);
+
+// إضافة عنصر إلى انفينتوري اللاعب
+Player.addItemInventory(par1int, par2int, par3int);
+
+// الفحص: هل يمتلك اللاعب القدرة على الطيران؟
+Player.canFly();
+
+// تفريغ خانة معينة من انفينتوري اللاعب
+Player.clearInventorySlot(par1int);
+
+// تطوير العنصر الذي بجهة محددة (رقم الخانة، ID التطويرة، مستوى التطويرة)
+Player.enchant(par1int, par2int, par3int);
+
+// جلب ID درع معين يرتديه اللاعب (الرأس، الصدر، السروال، الحذاء)
+Player.getArmorSlot(par1int);
+
+// جلب مستوى الضرر/الاستهلاك لقطعة الدرع
+Player.getArmorSlotDamage(par1int);
+
+// جلب ID العنصر الممسوك بيد اللاعب
+Player.getCarriedItem();
+
+// جلب عدد العناصر الممسوكة بيد اللاعب
+Player.getCarriedItemCount();
+
+// جلب قيمة الـ Data للعنصر الممسوك
+Player.getCarriedItemData();
+
+// جلب رقم البُعد الذي يتواجد فيه اللاعب (العادي، النثر)
+Player.getDimension();
+
+// جلب التقييمات والتطويرات للعنصر في الخانة
+Player.getEnchantments(par1int);
+
+// جلب كائن كيان اللاعب (Player Entity)
+Player.getEntity();
+
+// جلب مستوى الإرهاق/التعب للاعب (مقياس الجوع)
+Player.getExhaustion();
+
+// جلب نسبة الخبرة الحالية (XP Progress)
+Player.getExp();
+
+// جلب مستوى الجوع الحالي للاعب
+Player.getHunger();
+
+// جلب ID العنصر الموجود في خانة محددة
+Player.getInventorySlot(par1int);
+
+// جلب عدد العناصر في خانة محددة
+Player.getInventorySlotCount(par1int);
+
+// جلب قيمة Data العنصر في خانة محددة
+Player.getInventorySlotData(par1int);
+
+// جلب الاسم المخصص للعنصر في الخانة
+Player.getItemCustomName(par1int);
+
+// جلب ليفل/مستوى اللاعب الحالي
+Player.getLevel();
+
+// جلب اسم اللاعب النصي
+Player.getName(par1Object);
+
+// جلب Data البلوكة التي ينظر إليها اللاعب حالياً
+Player.getPointedBlockData();
+
+// جلب ID البلوكة التي ينظر إليها اللاعب حالياً
+Player.getPointedBlockId();
+
+// جلب وجه البلوكة (Side) الذي ينظر إليه اللاعب
+Player.getPointedBlockSide();
+
+// جلب إحداثيات البلوكة التي ينظر إليها اللاعب (X, Y, Z)
+Player.getPointedBlockX();
+Player.getPointedBlockY();
+Player.getPointedBlockZ();
+
+// جلب الكائن الذي ينظر إليه اللاعب حالياً
+Player.getPointedEntity();
+
+// جلب نقطة التصويب الدقيقة على المحاور (X, Y, Z)
+Player.getPointedVecX();
+Player.getPointedVecY();
+Player.getPointedVecZ();
+
+// جلب مستوى تشبع الجوع (Saturation)
+Player.getSaturation();
+
+// جلب النقاط الحالية للاعب (Score)
+Player.getSelectedSlotId();
+
+// جلب خانة الهاتف/السبيكة المحددة حالياً في الشريط السريع
+Player.getSelectedSlotId();
+
+// جلب إحداثيات موقع اللاعب الحالية
+Player.getX();
+Player.getY();
+Player.getZ();
+
+// الفحص: هل اللاعب يطير حالياً؟
+Player.isFlying();
+
+// الفحص: هل الكائن المحدد هو لاعب؟
+Player.isPlayer(par1Object);
+
+// تجهيز اللاعب بقطعة درع (رقم الخانة، ID الدرع، Data)
+Player.setArmorSlot(par1int, par2int, par3int);
+
+// السماح أو منع اللاعب من القدرة على الطيران
+Player.setCanFly(par1boolean);
+
+// ضبط مستوى إرهاق الجوع
+Player.setExhaustion(par1double);
+
+// ضبط نسبة نقاط الخبرة
+Player.setExp(par1double);
+
+// جعل اللاعب يطير أو يهبط إجبارياً
+Player.setFlying(par1boolean);
+
+// تعيين صحة/قلوب اللاعب
+Player.setHealth(par1int);
+
+// تعيين مستوى الجوع
+Player.setHunger(par1double);
+
+// وضع عنصر في خانة محددة للانفينتوري (الخانة، ID العنصر، العدد، Data)
+Player.setInventorySlot(par1int, par2int, par3int, par4int);
+
+// تغيير اسم عنصر محدد في انفينتوري اللاعب
+Player.setItemCustomName(par1int, par2String);
+
+// تعيين مستوى (ليفل) اللاعب
+Player.setLevel(par1int);
+
+// تعيين قيمة تشبع الطعام
+Player.setSaturation(par1double);
+
+// تحديد الخانة المحددة حالياً في شريط العناصر السريع
+Player.setSelectedSlotId(par1int);
+
+
+// ==========================================
+// 5. فئة الكائنات/الكيانات (Entity Class)
+// ==========================================
+
+// إضافة تأثير جرعة/مؤثر على الكائن (الكائن، ID التأثير، المدة، المستوى، الجزيئات، الأيقونة)
+Entity.addEffect(par1Object, par2int, par3int, par4int, par5boolean, par6boolean);
+
+// جلب مصفوفة تحتوي على جميع الكائنات الموجودة في العالم حالياً
+Entity.getAll();
+
+// جلب عمر الحيوان (تحديد هل هو صغير أم بالغ)
+Entity.getAnimalAge(par1Object);
+
+// جلب قطعة درع معينة يرتديها الكائن
+Entity.getArmor(par1Object, par2int);
+
+// جلب الاسم المخصص لدرع الكائن
+Entity.getArmorCustomName(par1Object, par2int);
+
+// جلب نسبة الضرر لدرع الكائن
+Entity.getArmorDamage(par1Object, par2int);
+
+// جلب معرف نوع الكائن (Entity Type ID)
+Entity.getEntityTypeId(par1Object);
+
+// جلب بيانات إضافية مخزنة على الكائن
+Entity.getExtraData(par1Object, par2String);
+
+// جلب عدد القلوب/الصحة الحالية للكائن
+Entity.getHealth(par1Object);
+
+// جلب عدد العناصر للكيان إن كان من نوع عنصر ملقى على الأرض (Item Entity)
+Entity.getItemEntityCount(par1Object);
+
+// جلب Data العنصر للكيان الملقى على الأرض
+Entity.getItemEntityData(par1Object);
+
+// جلب ID العنصر للكيان الملقى على الأرض
+Entity.getItemEntityId(par1Object);
+
+// جلب أقصى صحة/قلوب ممكنة للكائن
+Entity.getMaxHealth(par1Object);
+
+// جلب مسار صورة سكن الكائن
+Entity.getMobSkin(par1Object);
+
+// جلب الاسم المكتوب فوق رأس الكائن (NameTag)
+Entity.getNameTag(par1Object);
+
+// جلب زاوية الميل العمودية لعين الكائن (Pitch)
+Entity.getPitch(par1Object);
+
+// جلب نوع العرض/الرندر المخصص للكائن
+Entity.getRenderType(par1Object);
+
+// جلب الكائن الذي يركب فوق هذا الكائن (Rider)
+Entity.getRider(par1Object);
+
+// جلب الكائن الذي يمتكبه هذا الكائن (Riding)
+Entity.getRiding(par1Object);
+
+// جلب الهدف الذي يهاجمه الكائن حالياً (Target)
+Entity.getTarget(par1Object);
+
+// جلب المعرف الفريد الدائم للكائن (UUID / Unique ID)
+Entity.getUniqueId(par1Object);
+
+// جلب سرعة الحركة للكائن على المحاور الثلاثة
+Entity.getVelX(par1Object);
+Entity.getVelY(par1Object);
+Entity.getVelZ(par1Object);
+
+// جلب إحداثيات موقع الكائن
+Entity.getX(par1Object);
+Entity.getY(par1Object);
+Entity.getYaw(par1Object);
+Entity.getZ(par1Object);
+
+// الفحص: هل الكائن في وضع التسلل/الانحناء (Sneaking)؟
+Entity.isSneaking(par1Object);
+
+// حذف وحذف الكائن نهائياً من العالم
+Entity.remove(par1Object);
+
+// إزالة جميع تأثيرات الجرعات عن الكائن
+Entity.removeAllEffects(par1Object);
+
+// إزالة تأثير جرعة محدد عن الكائن
+Entity.removeEffect(par1Object, par2int);
+
+// جعل كائن يركب كائن آخر
+Entity.rideAnimal(par1Object, par2Object);
+
+// تعيين عمر الحيوان (رقم سالب للصغار، 0 للبالغين)
+Entity.setAnimalAge(par1Object, par2int);
+
+// تعيين درع للكائن (الكائن، الخانة، ID الدرع، Data)
+Entity.setArmor(par1Object, par2int, par3int, par4int);
+
+// تعيين اسم مخصص لقطعة درع الكائن
+Entity.setArmorCustomName(par1Object, par2int, par3String);
+
+// تعيين مسار عباءة/كاب الكائن
+Entity.setCape(par1Object, par2String);
+
+// تعيين العنصر الممسوك بيد الكائن
+Entity.setCarriedItem(par1Object, par2int, par3int, par4int);
+
+// تعيين حجم منطقة الاصطدام للكائن (Hitbox)
+Entity.setCollisionSize(par1Object, par2double, par3double);
+
+// تخزين بيانات نصية إضافية داخل الكائن
+Entity.setExtraData(par1Object, par2String, par3String);
+
+// إشعال النار في الكائن لمدة معينة (بالتيك)
+Entity.setFireTicks(par1Object, par2int);
+
+// تعيين القلوب/الصحة الحالية للكائن
+Entity.setHealth(par1Object, par2int);
+
+// شل حركة الكائن بالكامل (تجميد)
+Entity.setImmobile(par1Object, par2boolean);
+
+// تعيين أقصى عدد صحة ممكن للكائن
+Entity.setMaxHealth(par1Object, par2int);
+
+// تغيير سكن الكائن
+Entity.setMobSkin(par1Object, par2String);
+
+// تعيين الاسم النصي فوق رأس الكائن
+Entity.setNameTag(par1Object, par2String);
+
+// تغيير إحداثيات موقع الكائن مباشرة
+Entity.setPosition(par1Object, par2double, par3double, par4double);
+
+// نقل الكائن بنسبة محددة عن موقعه الحالي
+Entity.setPositionRelative(par1Object, par2double, par3double, par4double);
+
+// تعيين شكل رندر العرض للكائن
+Entity.setRenderType(par1Object, par2Object);
+
+// تعيين زوايا النظر للكائن (Yaw, Pitch)
+Entity.setRot(par1Object, par2double, par3double);
+
+// جعل الكائن يتسلل/ينحني أو العكس
+Entity.setSneaking(par1Object, par2boolean);
+
+// تحديد الهدف الذي يجب على الكائن مهاجمته
+Entity.setTarget(par1Object, par2Object);
+
+// تعيين قوى الدفع والسرعة للكائن على المحاور
+Entity.setVelX(par1Object, par2double);
+Entity.setVelY(par1Object, par2double);
+Entity.setVelZ(par1Object, par2double);
+
+// استدعاء وحش/كائن في العالم عبر الكيانات
+Entity.spawnMob(par1double, par2double, par3double, par4int, par5String);
+
+
+// ==========================================
+// 6. فئة العناصر (Item Class)
+// ==========================================
+
+// إضافة وصفة تصنيع غير منتظمة (Crafting Recipe)
+Item.addCraftRecipe(par1int, par2int, par3int, par4Scriptable);
+
+// إضافة وصفة صهر في الفرن (ID المخرج، ID المدخل، Data)
+Item.addFurnaceRecipe(par1int, par2int, par3int);
+
+// إضافة وصفة تصنيع شكلية/محددة بالشبكة (Shaped Recipe)
+Item.addShapedRecipe(par1int, par2int, par3int, par4Scriptable, par5Scriptable);
+
+// تعريف قطعة درع جديدة بجميع خصائصها
+Item.defineArmor(par1int, par2String, par3int, par4String, par5String, par6int, par7int, par8int);
+
+// تعريف مقذوف جديد قابل للرمي (مثل كرة الثلج)
+Item.defineThrowable(par1int, par2String, par3int, par4String, par5int);
+
+// جلب نوع رندر العرض للمقذوف المخصص
+Item.getCustomThrowableRenderType(par1int);
+
+// جلب أقصى قوة تحمل/صلابة للعنصر (Durability)
+Item.getMaxDamage(par1int);
+
+// جلب أقصى حجم للتكدس للعنصر (Stack Size)
+Item.getMaxStackSize(par1int);
+
+// جلب اسم العنصر المترجم
+Item.getName(par1int, par2int, par3boolean);
+
+// جلب إحداثيات صور التكستشر للعنصر
+Item.getTextureCoords(par1int, par2int);
+
+// جلب نوع أنيميشن الاستخدام (مثل الأكل أو شد القوس)
+Item.getUseAnimation(par1int);
+
+// تحويل الاسم الداخلي للعنصر إلى ID
+Item.internalNameToId(par1String);
+
+// الفحص: هل معرف العنصر (ID) صالح وموجود باللعبة؟
+Item.isValidItem(par1int);
+
+// تعيين تصنيف العنصر في قائمة الكريتيف
+Item.setCategory(par1int, par2int);
+
+// تحديد نوع التطويرات المسموح بها للعنصر
+Item.setEnchantType(par1int, par2int, par3int);
+
+// جعل العنصر يظهر في يد الشخصية مثل الأسلحة والأدوات
+Item.setHandEquipped(par1int, par2boolean);
+
+// تعيين أقصى صلابة/تحمل للعنصر
+Item.setMaxDamage(par1int, par2int);
+
+// تعيين خصائص مخصصة للعنصر
+Item.setProperties(par1int, par2Object);
+
+// تحديد هل يتم تجميد/تجمع العناصر حسب الـ Data
+Item.setStackedByData(par1int, par2boolean);
+
+// تعيين أنيميشن الاستخدام للعنصر
+Item.setUseAnimation(par1int, par2int);
+
+// تحويل الاسم المترجم إلى ID
+Item.translatedNameToId(par1String);
+
+
+// ==========================================
+// 7. فئة البلوكات (Block Class)
+// ==========================================
+
+// تعريف بلوكة جديدة بخصائصها (ID, الاسم، التكستشر، المادة، الشفافية، نوع الرندر)
+Block.defineBlock(par1int, par2String, par3Object, par4Object, par5Object, par6Object);
+
+// تعريف بلوكة سائلة جديدة (ماء/لافامخصصة)
+Block.defineLiquidBlock(par1int, par2String, par3Object, par4Object);
+
+// جلب قائمة بجميع أرقام معرّفات البلوكات المتاحة
+Block.getAllBlockIds();
+
+// جلب الوقت المستغرق لتكسير البلوكة
+Block.getDestroyTime(par1int, par2int);
+
+// جلب معامل الاحتكاك للبلوكة (مثل الجليد)
+Block.getFriction(par1int, par2int);
+
+// جلب نوع الرندر والشكل للبلوكة
+Block.getRenderType(par1int);
+
+// جلب إحداثيات تكستشر وجه البلوكة
+Block.getTextureCoords(par1int, par2int, par3int);
+
+// تعيين لون مخصص لخريطة البلوكة
+Block.setColor(par1int, par2Scriptable);
+
+// تعيين وقت وسرعة تكسير البلوكة
+Block.setDestroyTime(par1int, par2double);
+
+// تعيين مدى مقاومة البلوكة للانفجارات
+Block.setExplosionResistance(par1int, par2double);
+
+// تعيين معامل الاحتكاك والإنزلاق للبلوكة
+Block.setFriction(par1int, par2double);
+
+// تعيين مستوى الضوء المنبعث من البلوكة (شعاع نوري)
+Block.setLightLevel(par1int, par2int);
+
+// تعيين حدة عتمة/حجب الضوء للبلوكة
+Block.setLightOpacity(par1int, par2int);
+
+// تحديد هل تتفاعل البلوكة كـ موصل ردستون؟
+Block.setRedstoneConsumer(par1int, par2boolean);
+
+// تعيين طبقة عرض الرندر للبلوكة (شفاف، ضبابي... إلخ)
+Block.setRenderLayer(par1int, par2int);
+
+// تعيين طريقة رسم ورندر البلوكة
+Block.setRenderType(par1int, par2int);
+
+// تعيين حدود وأبعاد مجسم البلوكة (Hitbox Boundaries)
+Block.setShape(par1int, par2double, par3double, par4double, par5double, par6double, par7double, par8int);
+
+
+// ==========================================
+// 8. فئة السيرفر (Server Class)
+// ==========================================
+
+// جلب عنوان IP السيرفر الحالي
+Server.getAddress();
+
+// جلب أسماء جميع اللاعبين المتصلين في السيرفر
+Server.getAllPlayerNames();
+
+// جلب كيانات جميع اللاعبين المتصلين
+Server.getAllPlayers();
+
+// جلب رقم البورت (Port) الخاص بالسيرفر
+Server.getPort();
+
+// الانضمام تلقائياً لسيرفر محدد (IP, Port)
+Server.joinServer(par1String, par2int);
+
+// إرسال رسالة شات باسم السيرفر
+Server.sendChat(par1String);
+
+
+// ==========================================
+// 9. الأحداث والخطافات (Hooks / Event Listeners)
+// ==========================================
+
+// حدث: عند قيام كائن بمهاجمة كائن آخر (يمكن منع الضرر بـ preventDefault)
+function attackHook(attacker, victim)
+
+// حدث: عند كتابة رسالة في الشات (يمكن منع إرسالها بـ preventDefault)
+function chatHook(str)
+
+// حدث: أثناء استمرار كسر البلوكة وقبل تدميرها (يمكن منعها بـ preventDefault)
+function continueDestroyBlock(x, y, z, side, progress)
+
+// حدث: عند تدمير البلوكة بالكامل (يمكن إلغاء التكسير بـ preventDefault)
+function destroyBlock(x, y, z, side)
+
+// حدث: عند اصطدام مقذوف (سهم، كرة ثلج) بكائن آخر
+function projectileHitEntityHook(projectile, targetEntity)
+
+// حدث: عند أكل اللاعب لطعام
+function eatHook(hearts, saturationRatio)
+
+// حدث: عند إضافة/تولد كائن جديد في العالم
+function entityAddedHook(entity)
+
+// حدث: عند تعرض كائن لإصابة/ضرر (يمكن منع الضرر بـ preventDefault)
+function entityHurtHook(attacker, victim, halfhearts)
+
+// حدث: عند إزالة/موت كائن من العالم
+function entityRemovedHook(entity)
+
+// حدث: عند حدوث انفجار (يمكن إيقاف الانفجار بـ preventDefault)
+function explodeHook(entity, x, y, z, power, onFire)
+
+// حدث: عند استقبال رسالة قادمة من السيرفر
+function serverMessageReceiveHook(str)
+
+// حدث: عند موت كائن (يمكن منع الموت بـ preventDefault)
+function deathHook(attacker, victim)
+
+// حدث: عند اكتساب اللاعب لنقاط خبرة (XP)
+function playerAddExpHook(player, experienceAdded)
+
+// حدث: عند تغير ليفل/مستوى خبرة اللاعب
+function playerExpLevelChangeHook(player, levelsAdded)
+
+// حدث: عند تحديث إشارة الردستون وتغير الطاقة في موقع معين
+function redstoneUpdateHook(x, y, z, newCurrent, someBooleanIDontKnow, blockId, blockData)
+
+// حدث: عند دخول/تحميل عالم جديد
+function newLevel()
+
+// حدث: لحظة بدء اللاعب بتكسير البلوكة (أول ضربة)
+function startDestroyBlock(x, y, z, side)
+
+// حدث: عند اصطدام مقذوف ببلوكة معينة
+function projectileHitBlockHook(projectile, blockX, blockY, blockZ, side)
+
+// حدث: يتكرر باستمرار مع كل تيك في اللعبة (20 مرة في الثانية)
+function modTick()
+
+// حدث: عند استخدام عنصر على بلوكة (ضغطة يمين/لمس)
+function useItem(x, y, z, itemid, blockid, side, itemDamage, blockDamage)
+
+
+// ==========================================
+// 10. ثوابت ألوان الشات (Chat Color Constants)
+// ==========================================
+
+ChatColor.AQUA;           // أزرق سماوي فاتح
+ChatColor.BEGIN;          // بداية رمز اللون
+ChatColor.BLACK;          // أسود
+ChatColor.BLUE;           // أزرق
+ChatColor.BOLD;           // خط عريض
+ChatColor.DARK_AQUA;      // أزرق سماوي داكن
+ChatColor.DARK_BLUE;      // أزرق داكن
+ChatColor.DARK_GRAY;      // رمادي داكن
+ChatColor.DARK_GREEN;     // أخضر داكن
+ChatColor.DARK_PURPLE;    // بنفسجي داكن
+ChatColor.DARK_RED;       // أحمر داكن
+ChatColor.GOLD;           // ذهبي/برتقالي
+ChatColor.GRAY;           // رمادي
+ChatColor.GREEN;          // أخضر فاتح
+ChatColor.LIGHT_PURPLE;   // بنفسجي فاتح/زهري
+ChatColor.RED;            // أحمر
+ChatColor.RESET;          // إعادة ضبط اللون للافتراضي
+ChatColor.WHITE;          // أبيض
+ChatColor.YELLOW;         // أصفر
+
+
+// ==========================================
+// 11. تصنيفات العناصر (Item Categories)
+// ==========================================
+
+ItemCategory.DECORATION;  // عناصر الزينة والبناء
+ItemCategory.FOOD;        // المأكولات والأطعمة
+ItemCategory.INTERNAL;    // عناصر داخلية للنظام
+ItemCategory.MATERIAL;    // المواد الخام والمعادن
+ItemCategory.TOOL;        // الأدوات والأسلحة
+
+
+// ==========================================
+// 12. ثوابت أنواع الجزيئات (Particle Types)
+// ==========================================
+
+ParticleType.angryVillager;        // الغضب (القروي الغاضب)
+ParticleType.bubble;               // فقاعات الماء
+ParticleType.cloud;                // سحاب/دخان أبيض
+ParticleType.crit;                 // ضربة حرجة (Critical)
+ParticleType.dripLava;             // قطرات حمم تنقط
+ParticleType.dripWater;            // قطرات ماء تنقط
+ParticleType.enchantmenttable;     // حروف طاولة التطوير
+ParticleType.fallingDust;          // غبار متساقط
+ParticleType.flame;                // شرار نار
+ParticleType.happyVillager;        // سعادة القروي (القلوب الخضراء)
+ParticleType.heart;                // قلوب حمراء
+ParticleType.hugeexplosion;        // انفجار ضخم
+ParticleType.hugeexplosionSeed;    // بذرة الانفجار الضخم
+ParticleType.ink;                  // حبر الحبار
+ParticleType.itemBreak;            // تكسر العناصر
+ParticleType.largeexplode;         // انفجار كبير
+ParticleType.lava;                 // شرار الـ Lava
+ParticleType.mobFlame;             // لهب الموبس (مثل البليز)
+ParticleType.note;                 // نوتات موسيقية
+ParticleType.portal;               // جزيئات بوابة النثر
+ParticleType.rainSplash;           // طشاش المطر
+ParticleType.redstone;             // غبار الردستون الأحمر
+ParticleType.slime;                // جزيئات السلايم الأخضر
+ParticleType.smoke;                // دخان عادي
+ParticleType.smoke2;               // دخان كثيف
+ParticleType.snowballpoof;         // تناثر كرة الثلج
+ParticleType.spell;                // جزيئات السحر
+ParticleType.spell2;               // جزيئات السحر النوع الثاني
+ParticleType.spell3;               // جزيئات السحر النوع الثالث
+ParticleType.splash;               // طشاش الماء
+ParticleType.suspendedTown;        // غبار البلدة المكتوم
+ParticleType.terrain;              // جزيئات تكسر البلوكات
+ParticleType.waterWake;            // أثر أثلام المراكب في الماء
+
+
+// ==========================================
+// 13. ثوابت أنواع الكائنات (Entity Types)
+// ==========================================
+
+EntityType.ARROW;                  // سهم
+EntityType.BAT;                    // خفاش
+EntityType.BLAZE;                  // بليز (وحش النار)
+EntityType.BOAT;                   // قارب
+EntityType.CAVE_SPIDER;            // عنكبوت الكهوف
+EntityType.CHICKEN;                // دجاجة
+EntityType.COW;                    // بقرة
+EntityType.CREEPER;                // كريبر
+EntityType.EGG;                    // بيضة ملقاة
+EntityType.ENDERMAN;               // أندر مان
+EntityType.EXPERIENCE_ORB;         // كورة خبرة (XP)
+EntityType.EXPERIENCE_POTION;      // قارورة خبرة ملقاة
+EntityType.FALLING_BLOCK;          // بلوكة متساقطة (مثل الرمل)
+EntityType.FIREBALL;               // كرة نار
+EntityType.FISHING_HOOK;           // صنارة صيد
+EntityType.GHAST;                  // غاست
+EntityType.IRON_GOLEM;             // جوليم الحديد
+EntityType.ITEM;                   // عنصر ملقى على الأرض
+EntityType.LAVA_SLIME;             // مكعب المغما (Lava Slime)
+EntityType.LIGHTNING_BOLT;         // صاعقة برق
+EntityType.MINECART;               // عربة المناجم
+EntityType.MUSHROOM_COW;           // بقرة المشروم
+EntityType.OCELOT;                 // فهد/قط وحشي
+EntityType.PAINTING;               // لوحة فنية
+EntityType.PIG;                    // خنزير
+EntityType.PIG_ZOMBIE;             // خنزير زومبي
+EntityType.PLAYER;                 // لاعب
+EntityType.PRIMED_TNT;             // TNT مشتعل
+EntityType.RABBIT;                 // أرنب
+EntityType.SHEEP;                  // خروف
+EntityType.SILVERFISH;             // سمكة الفضة
+EntityType.SKELETON;               // هيكل عظمي
+EntityType.SLIME;                  // سلايم
+EntityType.SMALL_FIREBALL;         // كرة نار صغيرة
+EntityType.SNOWBALL;               // كرة ثلج
+EntityType.SNOW_GOLEM;             // جوليم الثلج
+EntityType.SPIDER;                 // عنكبوت
+EntityType.SQUID;                  // حبار
+EntityType.THROWN_POTION;          // جرعة ملقاة
+EntityType.VILLAGER;               // قروي
+EntityType.WOLF;                   // ذئب
+EntityType.ZOMBIE;                 // زومبي
+EntityType.ZOMBIE_VILLAGER;        // قروي زومبي
+
+
+// ==========================================
+// 14. ثوابت أنواع رندر الكائنات (Entity Render Types)
+// ==========================================
+
+EntityRenderType.arrow;            // رندر السهم
+EntityRenderType.bat;              // رندر الخفاش
+EntityRenderType.blaze;            // رندر البليز
+EntityRenderType.boat;             // رندر القارب
+EntityRenderType.camera;           // رندر الكاميرا
+EntityRenderType.chicken;          // رندر الدجاجة
+EntityRenderType.cow;              // رندر البقرة
+EntityRenderType.creeper;          // رندر الكريبر
+EntityRenderType.egg;              // رندر البيضة
+EntityRenderType.enderman;         // رندر الأندرمان
+EntityRenderType.expPotion;        // رندر قارورة الخبرة
+EntityRenderType.experienceOrb;    // رندر كورة الـ XP
+EntityRenderType.fallingTile;      // رندر البلوكة المتساقطة
+EntityRenderType.fireball;         // رندر كرة النار
+EntityRenderType.fishHook;         // رندر خيط الصنارة
+EntityRenderType.ghast;            // رندر الغاست
+EntityRenderType.human;            // رندر الشكل البشري
+EntityRenderType.ironGolem;        // رندر جوليم الحديد
+EntityRenderType.item;             // رندر العناصر الملقاة
+EntityRenderType.lavaSlime;        // رندر مكعب المغما
+EntityRenderType.lightningBolt;    // رندر البرق
+EntityRenderType.map;              // رندر الخريطة
+EntityRenderType.minecart;         // رندر الماين كارت
+EntityRenderType.mushroomCow;      // رندر بقرة المشروم
+EntityRenderType.ocelot;           // رندر القط
+EntityRenderType.painting;         // رندر اللوحة
+EntityRenderType.pig;              // رندر الخنزير
+EntityRenderType.player;           // رندر اللاعب
+EntityRenderType.rabbit;           // رندر الأرنب
+EntityRenderType.sheep;            // رندر الخروف
+EntityRenderType.silverfish;       // رندر سمكة الفضة
+EntityRenderType.skeleton;         // رندر الهيكل العظمي
+EntityRenderType.slime;            // رندر السلايم
+EntityRenderType.smallFireball;    // رندر كرة النار الصغيرة
+EntityRenderType.snowGolem;        // رندر رجل الثلج
+EntityRenderType.snowball;         // رندر كرة الثلج
+EntityRenderType.spider;           // رندر العنكبوت
+EntityRenderType.squid;            // رندر الحبار
+EntityRenderType.thrownPotion;     // رندر الجرعة الملقاة
+EntityRenderType.tnt;              // رندر الـ TNT
+EntityRenderType.unknownItem;      // رندر عنصر مجهول
+EntityRenderType.villager;         // رندر القروي
+EntityRenderType.villagerZombie;   // رندر القروي الزومبي
+EntityRenderType.witch;            // رندر الساحرة
+EntityRenderType.wolf;             // رندر الذئب
+EntityRenderType.zombie;           // رندر الزومبي
+EntityRenderType.zombiePigman;     // رندر الخنزير الزومبي
+
+
+// ==========================================
+// 15. ثوابت قطع الدروع (Armor Types)
+// ==========================================
+
+ArmorType.boots;        // الحذاء
+ArmorType.chestplate;   // درع الصدر
+ArmorType.helmet;       // الخوذة
+ArmorType.leggings;     // السروال/البنطال
+
+
+// ==========================================
+// 16. ثوابت التأثيرات والجرعات (Mob Effects)
+// ==========================================
+
+MobEffect.absorption;          // امتصاص الضرر (القلوب الصفراء)
+MobEffect.blindness;           // العمى
+MobEffect.confusion;           // الغثيان/الدوار
+MobEffect.damageBoost;         // زيادة قوة الهجوم (القوة)
+MobEffect.damageResistance;    // مقاومة الضرر (الحماية)
+MobEffect.digSlowdown;         // بطء التعدين
+MobEffect.digSpeed;            // تسرع التعدين (Haste)
+MobEffect.effectIds;           // مصفوفة معرفات التأثيرات
+MobEffect.fireResistance;      // مقاومة النار والحمم
+MobEffect.harm;                // ضرر فوري (Instant Damage)
+MobEffect.heal;                // شفاء فوري (Instant Health)
+MobEffect.healthBoost;         // زيادة الحد الأقصى للقلوب
+MobEffect.hunger;              // تأثير الجوع
+MobEffect.invisibility;        // الاختفاء
+MobEffect.jump;                // قفز أعلى
+MobEffect.movementSlowdown;    // البطء
+MobEffect.movementSpeed;       // السرعة
+MobEffect.nightVision;         // الرؤية الليلية
+MobEffect.poison;              // السم
+MobEffect.regeneration;        // تجدد القلوب التلقائي
+MobEffect.saturation;          // إشباع الجوع
+MobEffect.waterBreathing;      // التنفس تحت الماء
+MobEffect.weakness;            // الضعف
+MobEffect.wither;              // تأثير الويذر (القلوب السوداء)
+
+
+// ==========================================
+// 17. ثوابت الأبعاد (Dimension IDs)
+// ==========================================
+
+DimensionId.NETHER;  // عالم النثر (Nether)
+DimensionId.NORMAL;  // العالم العادي (Overworld)
+
+
+// ==========================================
+// 18. ثوابت أوجه البلوكات (Block Faces)
+// ==========================================
+
+BlockFace.DOWN;   // الوجه السفلي
+BlockFace.EAST;   // الوجه الشرقي
+BlockFace.NORTH;  // الوجه الشمالي
+BlockFace.SOUTH;  // الوجه الجنوبي
+BlockFace.UP;     // الوجه العلوي
+BlockFace.WEST;   // الوجه الغربي
+
+
+// ==========================================
+// 19. أنيميشن الاستخدام (Use Animations)
+// ==========================================
+
+UseAnimation.bow;      // أنيميشن شد القوس
+UseAnimation.normal;   // الأنيميشن الطبيعي/الافتراضي
+
+
+// ==========================================
+// 20. ثوابت التطويرات (Enchantments)
+// ==========================================
+
+Enchantment.AQUA_AFFINITY;       // ألفة الماء (التكسير السريع تحت الماء)
+Enchantment.BANE_OF_ARTHROPODS;  // قاتل المفصليات (المؤذي للعناكب)
+Enchantment.BLAST_PROTECTION;    // حماية من الانفجارات
+Enchantment.DEPTH_STRIDER;       // السير المائي السريع
+Enchantment.EFFICIENCY;          // الكفاءة (سرعة التعدين)
+Enchantment.FEATHER_FALLING;     // خفة السقوط (تقليل ضرر الوقوع)
+Enchantment.FIRE_ASPECT;         // الشعلة/الاشتغال عند الضرب
+Enchantment.FIRE_PROTECTION;     // حماية من النار
+Enchantment.FLAME;               // أسهم نارية (للقوس)
+Enchantment.FORTUNE;             // الحظ (مضاعفة الموارد عند التعدين)
+Enchantment.INFINITY;            // اللانهائية (أسهم لا تنتهي للقوس)
+Enchantment.KNOCKBACK;           // الارتداد (دفع الخصم للوراء)
+Enchantment.LOOTING;             // غنيمة (زيادة موارد الموبس المقتولة)
+Enchantment.LUCK_OF_THE_SEA;     // حظ البحر (عند صيد الأسماك)
+Enchantment.LURE;                // الطعم (تسريع صيد الأسماك)
+Enchantment.POWER;               // القوة (زيادة ضرر القوس)
+Enchantment.PROJECTILE_PROTECTION;// حماية من المقذوفات (الأسهم)
+Enchantment.PROTECTION;          // الحماية العامة
+Enchantment.PUNCH;               // الارتداد للقوس (دفع الخصم بالسهم)
+Enchantment.RESPIRATION;         // التنفس المطول تحت الماء
+Enchantment.SHARPNESS;           // الحدة (زيادة ضرر السيف)
+Enchantment.SILK_TOUCH;          // الملمس الحريري (تكسير البلوكة كما هي)
+Enchantment.SMITE;               // القضاء (ضرر مضاعف على الزومبي والهياكل)
+Enchantment.THORNS;              // الأشواك (رد الضرر للمهاجم)
+Enchantment.UNBREAKING;          // الصلابة (تقليل استهلاك ديمومة السلاح)
+
+
+// ==========================================
+// 21. فئات الأداة المسموح تطويرها (Enchant Types)
+// ==========================================
+
+EnchantType.all;            // جميع الأدوات والأدوات
+EnchantType.axe;            // الفأس
+EnchantType.book;           // الكتب
+EnchantType.bow;            // القوس
+EnchantType.fishingRod;     // صنارة الصيد
+EnchantType.flintAndSteel;  // الولاعة
+EnchantType.hoe;            // المجرفة/المجرفة الزراعية
+EnchantType.pickaxe;        // المعول/البيككس
+EnchantType.shears;         // المقص
+EnchantType.shovel;         // المجرفة
+EnchantType.weapon;         // الأسلحة (السيوف)
+
+
+// ==========================================
+// 22. طبقات عرض البلوكات (Block Render Layers)
+// ==========================================
+
+BlockRenderLayer.alpha;                 // طبقة الشفافية التامة
+BlockRenderLayer.alpha_seasons;         // شفافية تتأثر بفصول السنة
+BlockRenderLayer.alpha_single_side;     // شفافية من جانب واحد فقط
+BlockRenderLayer.blend;                 // دمج الألوان والشفافية التدريجية
+BlockRenderLayer.doubleside;            // رسم ورندر للوجهين (الداخلي والخارجي)
+BlockRenderLayer.far;                   // طبقة العرض للمسافات البعيدة
+BlockRenderLayer.opaque;                // معتم تماماً (غير شفاف)
+BlockRenderLayer.opaque_seasons;        // معتم ويتأثر بالفصول
+BlockRenderLayer.seasons_far;           // للمسافات البعيدة مع التأثر بالفصول
+BlockRenderLayer.seasons_far_alpha;     // شفاف بعيد يتأثر بالفصول
+BlockRenderLayer.water;                 // طبقة الرندر الخاصة بالماء
