@@ -12,7 +12,7 @@ Download Termux From F-Droid
 
 Then write termux-setup-storage
 
-Then go To script bath (example: /storage/shared/Download/)
+Then go To script path (example: /storage/shared/Download/)
 
 Then write
 
