@@ -1,0 +1,3 @@
+function newLevel(){
+    ModPE.leaveGame()
+}
