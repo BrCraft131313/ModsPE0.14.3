@@ -6,6 +6,18 @@ You can contribute to this repository at least by translating Arabic (Or English
 
 If you notice me disappearing for a long or relatively long period, take the developer guide file and use AI to help you create mods.
 
+To Use This Script (modspe0.14.3-projectupdate.sh)
+
+Download Termux From F-Droid 
+
+Write termux-setup-storage 
+
+Write The Path For The Script (ex: /storage/emulated/0/Download/)
+
+Write chmod +x modspe0.14.3-projectupdate.sh && bash modspe0.14.3-projectupdate.sh
+
+Then Enjoy!
+
 My TikTok: 
 https://tiktok.com/@brcraft131313
 
