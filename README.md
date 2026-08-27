@@ -11,6 +11,10 @@ You can contribute to this repository at least by translating Arabic (Or English
 
 If you notice me disappearing for a long or relatively long period, take the developer guide file and use AI to help you create mods.
 
+# He started 
+
+24/7/2026
+
 # To Use This Script (modspe0.14.3-projectupdate.sh)
 
 Download Termux From F-Droid 
