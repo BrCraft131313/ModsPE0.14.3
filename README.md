@@ -31,7 +31,7 @@ Then Enjoy!
 
 GPL3
 
-# The First & The Last Release 
+# The Releases 
 
 All My Mods In This Release 
 
@@ -56,5 +56,5 @@ https://m.youtube.com/@brcraft-v8v
 My Portfolio:
 https://brcraft131313.github.io/Portfolio/
 
-CmdMaker:
+CmdMaker-ModsPE0.14.3 :
 https://github.com/BrCraft131313/CmdMaker-ModsPE0.14.3
