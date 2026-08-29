@@ -1,5 +1,5 @@
 // ==========================================
-// مود SkyBox الشامل - جميع أيتمات وبلوكات 0.14.3
+// مود SkyBox - التمييز باللوحة (0.14.3)
 // ==========================================
 
 var skyboxItems = [
@@ -252,7 +252,35 @@ var skyboxItems = [
 
 function newLevel() {
     addItemInventory(54, 1, 0);
-    clientMessage("Use /skybox For Random Items(But use it a lot so you can benefit from it)");
+    addItemInventory(323, 1, 0); // أعطينا للاعب لوحة أيضاً
+    clientMessage("Place a Sign above or on the Chest and write 'skybox' to enable random items!");
+}
+
+// دالة تفحص هل توجد لوحة مكتوب عليها skybox حول الصندوق
+function isSkyboxChest(x, y, z) {
+    var checkCoords = [
+        [x, y + 1, z], // فوق الصندوق
+        [x + 1, y, z], // يمين
+        [x - 1, y, z], // يسار
+        [x, y, z + 1], // أمام
+        [x, y, z - 1]  // خلف
+    ];
+
+    for (var i = 0; i < checkCoords.length; i++) {
+        var cx = checkCoords[i][0];
+        var cy = checkCoords[i][1];
+        var cz = checkCoords[i][2];
+        var tile = Level.getTile(cx, cy, cz);
+
+        // ID اللوحة الأرضية (63) واللوحة الجدارية (68)
+        if (tile === 63 || tile === 68) {
+            var line0 = Level.getSignText(cx, cy, cz, 0);
+            if (line0 && line0.toLowerCase().trim() === "skybox") {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 function procCmd(cmd) {
@@ -270,16 +298,18 @@ function procCmd(cmd) {
                 for (var z = pz - 5; z <= pz + 5; z++) {
                     if (Level.getTile(x, y, z) === 54) {
                         
-                        var randomIndex = Math.floor(Math.random() * skyboxItems.length);
-                        var selectedItem = skyboxItems[randomIndex];
-                        var randomSlot = Math.floor(Math.random() * 27);
-                        
-                        // الترتيب الصحيح: id, damage, count
-                        Level.setChestSlot(x, y, z, randomSlot, selectedItem.id, selectedItem.damage, selectedItem.count);
-                        
-                        clientMessage(ChatColor.GOLD + "[SkyBox] Item added to slot " + (randomSlot + 1) + "!");
-                        chestFound = true;
-                        break;
+                        // فحص وجود اللوحة قبل وضع الغرض
+                        if (isSkyboxChest(x, y, z)) {
+                            var randomIndex = Math.floor(Math.random() * skyboxItems.length);
+                            var selectedItem = skyboxItems[randomIndex];
+                            var randomSlot = Math.floor(Math.random() * 27);
+                            
+                            Level.setChestSlot(x, y, z, randomSlot, selectedItem.id, selectedItem.damage, selectedItem.count);
+                            
+                            clientMessage(ChatColor.GOLD + "[SkyBox] Item added to slot " + (randomSlot + 1) + "!");
+                            chestFound = true;
+                            break;
+                        }
                     }
                 }
                 if (chestFound) break;
@@ -288,8 +318,8 @@ function procCmd(cmd) {
         }
         
         if (!chestFound) {
-            clientMessage(ChatColor.RED + "[SkyBox] No chest found nearby!");
+            clientMessage(ChatColor.RED + "[SkyBox] No SkyBox chest found! Make sure to put a sign with 'skybox' on or above the chest.");
         }
     }
-    }
-     
+        }
+    
