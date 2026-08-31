@@ -1,53 +1,97 @@
 // ==========================================
-// مود Lucky Block (الإسفنج المحظوظ) - (0.14.3)
+// مود Custom Crossbow (مضمون رسبنة البلوكات - 0.14.3)
 // ==========================================
 
-function destroyBlock(x, y, z, side) {
-    // الحصول على نوع البلوكة المكسورة
-    var blockId = Level.getTile(x, y, z);
+var crossAmount = 1; 
+var crossBlockId = 2; 
+var isSpawningExtra = false;
 
-    // التحقق مما إذا كانت البلوكة هي الإسفنج (ID = 19)
-    if (blockId == 19) {
-        
-        // اختيار رقم عشوائي من 1 إلى 6
-        var randomNumber = Math.floor(Math.random() * 6) + 1;
-
-        switch (randomNumber) {
-            case 1:
-                // مكافأة قيمة: دايموند
-                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 264, 3, 0); // 3 دايموند
-                clientMessage("§a[Lucky Block] §fYou got lucky! 3 Diamonds!");
-                break;
-
-            case 2:
-                // فخ: رسبنة زومبي
-                Level.spawnMob(x + 0.5, y, z + 0.5, 32); // ID الزومبي = 32
-                clientMessage("§c[Lucky Block] §fBad luck! A Zombie appeared!");
-                break;
-
-            case 3:
-                // أدوات: سيف دايموند
-                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 276, 1, 0); 
-                clientMessage("§a[Lucky Block] §fYou received a Diamond Sword!");
-                break;
-
-            case 4:
-                // بلوكات قيمة: بلوك ذهب
-                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 41, 2, 0); 
-                clientMessage("§e[Lucky Block] §fYou got 2 Gold Blocks!");
-                break;
-
-            case 5:
-                // فخ: انفجار خفيف مكان البلوكة
-                Level.explode(x + 0.5, y + 0.5, z + 0.5, 2);
-                clientMessage("§4[Lucky Block] §fWatch out! Explosion!");
-                break;
-
-            case 6:
-                // طعام: تفاح ذهبي
-                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 322, 2, 0); 
-                clientMessage("§6[Lucky Block] §fYou received 2 Golden Apples!");
-                break;
+function procCmd(command) {
+    var args = command.split(" ");
+    
+    if (args[0].toLowerCase() == "cross") {
+        if (args.length >= 3) {
+            var amount = parseInt(args[1]);
+            var blockId = parseInt(args[2]);
+            
+            if (!isNaN(amount) && !isNaN(blockId)) {
+                crossAmount = amount;
+                crossBlockId = blockId;
+                clientMessage("§a[Crossbow] Set arrows to: §e" + crossAmount + " §aand Block ID to: §e" + crossBlockId);
+            } else {
+                clientMessage("§c[Crossbow] Usage: /cross <amount> <id>");
+            }
+        } else {
+            clientMessage("§c[Crossbow] Usage: /cross <amount> <id>");
         }
     }
 }
+
+// إنشاء الأسهم الإضافية عند الإطلاق
+function entityAddedHook(entity) {
+    if (isSpawningExtra) return;
+
+    if (Entity.getEntityTypeId(entity) == 80) {
+        var vx = Entity.getVelX(entity);
+        var vy = Entity.getVelY(entity);
+        var vz = Entity.getVelZ(entity);
+        
+        if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05 || Math.abs(vz) > 0.05) {
+            if (crossAmount > 1) {
+                isSpawningExtra = true;
+
+                var px = Entity.getX(entity);
+                var py = Entity.getY(entity);
+                var pz = Entity.getZ(entity);
+
+                for (var i = 1; i < crossAmount; i++) {
+                    var svx = vx + (Math.random() - 0.5) * 0.15;
+                    var svy = vy + (Math.random() - 0.5) * 0.1;
+                    var svz = vz + (Math.random() - 0.5) * 0.15;
+
+                    var newArrow = Level.spawnMob(px, py, pz, 80);
+                    if (newArrow) {
+                        Entity.setVelX(newArrow, svx);
+                        Entity.setVelY(newArrow, svy);
+                        Entity.setVelZ(newArrow, svz);
+                    }
+                }
+
+                isSpawningExtra = false;
+            }
+        }
+    }
+}
+
+// فحص الأسهم المسقرة على الأرض مباشرة
+function modTick() {
+    var entities = Entity.getAll();
+    if (!entities) return;
+
+    for (var i = 0; i < entities.length; i++) {
+        var ent = entities[i];
+        
+        if (Entity.getEntityTypeId(ent) == 80) {
+            var vx = Entity.getVelX(ent);
+            var vy = Entity.getVelY(ent);
+            var vz = Entity.getVelZ(ent);
+
+            // إذا توقف السهم تقريباً عن الحركة (اصطدم بالأرض)
+            if (Math.abs(vx) < 0.01 && Math.abs(vy) < 0.01 && Math.abs(vz) < 0.01) {
+                var x = Math.floor(Entity.getX(ent));
+                var y = Math.floor(Entity.getY(ent));
+                var z = Math.floor(Entity.getZ(ent));
+
+                // وضع البلوكة مكان السهم أو تحته مباشرة
+                if (Level.getTile(x, y, z) == 0) {
+                    Level.setTile(x, y, z, crossBlockId);
+                } else {
+                    Level.setTile(x, y + 1, z, crossBlockId);
+                }
+
+                // حذف السهم بعد وضع البلوكة
+                Entity.remove(ent);
+            }
+        }
+    }
+        }
