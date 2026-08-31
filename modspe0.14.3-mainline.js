@@ -1,52 +1,53 @@
 // ==========================================
-// مود Spider Climb - التخطي الكامل للحافة (0.14.3)
+// مود Lucky Block (الإسفنج المحظوظ) - (0.14.3)
 // ==========================================
 
-function modTick() {
-    var player = Player.getEntity();
-    var px = Player.getX();
-    var py = Player.getY();
-    var pz = Player.getZ();
-    var yaw = Entity.getYaw(player);
+function destroyBlock(x, y, z, side) {
+    // الحصول على نوع البلوكة المكسورة
+    var blockId = Level.getTile(x, y, z);
 
-    var radians = yaw * Math.PI / 180;
-    var dx = -Math.sin(radians);
-    var dz = Math.cos(radians);
+    // التحقق مما إذا كانت البلوكة هي الإسفنج (ID = 19)
+    if (blockId == 19) {
+        
+        // اختيار رقم عشوائي من 1 إلى 6
+        var randomNumber = Math.floor(Math.random() * 6) + 1;
 
-    // نقطة التحسس أمام اللاعب
-    var checkX = Math.floor(px + (dx * 0.5));
-    var checkY = Math.floor(py);
-    var checkZ = Math.floor(pz + (dz * 0.5));
+        switch (randomNumber) {
+            case 1:
+                // مكافأة قيمة: دايموند
+                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 264, 3, 0); // 3 دايموند
+                clientMessage("§a[Lucky Block] §fYou got lucky! 3 Diamonds!");
+                break;
 
-    var blockAtFeet = Level.getTile(checkX, checkY, checkZ);
-    var blockAtHead = Level.getTile(checkX, checkY + 1, checkZ);
+            case 2:
+                // فخ: رسبنة زومبي
+                Level.spawnMob(x + 0.5, y, z + 0.5, 32); // ID الزومبي = 32
+                clientMessage("§c[Lucky Block] §fBad luck! A Zombie appeared!");
+                break;
 
-    if (Player.isFlying()) return;
+            case 3:
+                // أدوات: سيف دايموند
+                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 276, 1, 0); 
+                clientMessage("§a[Lucky Block] §fYou received a Diamond Sword!");
+                break;
 
-    var velX = Entity.getVelX(player);
-    var velZ = Entity.getVelZ(player);
-    var isPushing = (Math.abs(velX) > 0.001 || Math.abs(velZ) > 0.001);
+            case 4:
+                // بلوكات قيمة: بلوك ذهب
+                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 41, 2, 0); 
+                clientMessage("§e[Lucky Block] §fYou got 2 Gold Blocks!");
+                break;
 
-    if (isPushing) {
-        // إذا كان هناك بلوك عند قدميك أو رأسك (جدار)
-        if (blockAtFeet !== 0 || blockAtHead !== 0) {
-            Entity.setVelY(player, 0.2); // رفع السرعة قليلاً للتغلب على احتكاك الحافة
-            Entity.setVelX(player, dx * 0.15);
-            Entity.setVelZ(player, dz * 0.15);
-        }
-        // إذا وصلت للحافة تماماً (البلوك تحت القدمين لكن لا يوجد بلوك أمام القدمين)
-        else {
-            var blockBelowFeet = Level.getTile(checkX, checkY - 1, checkZ);
-            if (blockBelowFeet !== 0) {
-                // إعطاء قفزة خفيفة ودفعة للأمام لتوضع فوق البلوكة
-                Entity.setVelY(player, 0.25);
-                Entity.setPosition(player, px + (dx * 0.1), py + 0.1, pz + (dz * 0.1));
-            }
-        }
-    } else {
-        // الثبات عند ترك أزرار الحركة
-        if ((blockAtFeet !== 0 || blockAtHead !== 0) && Entity.getVelY(player) < 0) {
-            Entity.setVelY(player, 0);
+            case 5:
+                // فخ: انفجار خفيف مكان البلوكة
+                Level.explode(x + 0.5, y + 0.5, z + 0.5, 2);
+                clientMessage("§4[Lucky Block] §fWatch out! Explosion!");
+                break;
+
+            case 6:
+                // طعام: تفاح ذهبي
+                Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 322, 2, 0); 
+                clientMessage("§6[Lucky Block] §fYou received 2 Golden Apples!");
+                break;
         }
     }
-    }
+}
