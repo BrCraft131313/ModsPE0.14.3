@@ -1,68 +1,56 @@
-// Block Gravity Mod for MCPE 0.14.3 (Fixed & Auto-Check)
-// يجعل كل البلوكات المرتفعة تسقط تلقائياً كالرمل والجرافل باستثناء البيدروك (7)
+// CountDown Mod for MCPE 0.14.3
+// يطبع عد تنازلي من 10 إلى 0 مع تشغيل صوت عند كل ثانية وصوت انفجار عند النهاية
 
-var isGravityEnabled = true;
+var countNumber = -1;
+var ticks = 0;
 
 function procCmd(command) {
     var args = command.split(" ");
     var cmd = args[0].toLowerCase();
 
-    if (cmd == "gv" || cmd == "gravity") {
-        if (args.length > 1) {
-            var subCmd = args[1].toLowerCase();
-            if (subCmd == "on" || subCmd == "enable") {
-                isGravityEnabled = true;
-                clientMessage("§a[Gravity] Enabled!");
-                return;
-            } else if (subCmd == "off" || subCmd == "disable") {
-                isGravityEnabled = false;
-                clientMessage("§c[Gravity] Disabled!");
-                return;
-            }
+    if (cmd == "count") {
+        if (countNumber > -1) {
+            clientMessage("§c[CountDown] Countdown is already running!");
+            return;
         }
-        isGravityEnabled = !isGravityEnabled;
-        if (isGravityEnabled) {
-            clientMessage("§a[Gravity] Enabled!");
-        } else {
-            clientMessage("§c[Gravity] Disabled!");
-        }
+        countNumber = 10;
+        ticks = 0;
+        clientMessage("§a[CountDown] Countdown started!");
     }
 }
 
-// فحص مستمر وحقيقي لكل البلوكات القريبة حول اللاعب في كل لحظة
 function modTick() {
-    if (!isGravityEnabled) return;
+    if (countNumber < 0) return;
 
-    var player = Player.getEntity();
-    if (!player) return;
+    ticks++;
 
-    var px = Math.floor(Entity.getX(player));
-    var py = Math.floor(Entity.getY(player));
-    var pz = Math.floor(Entity.getZ(player));
+    // كل 20 Ticks تعادل ثانية واحدة تقريباً
+    if (ticks >= 20) {
+        ticks = 0;
 
-    // فحص نطاق (Radius) حول اللاعب لأسقاط البلوكات المعلقة
-    var radius = 5;
-    for (var x = px - radius; x <= px + radius; x++) {
-        for (var y = 1; y <= py + 5; y++) {
-            for (var z = pz - radius; z <= pz + radius; z++) {
-                checkAndDrop(x, y, z);
-            }
+        var player = Player.getEntity();
+        if (!player) return;
+
+        var x = Entity.getX(player);
+        var y = Entity.getY(player);
+        var z = Entity.getZ(player);
+
+        if (countNumber > 0) {
+            // طباعة الرقم بتنسيق مميز
+            clientMessage("§e§l[CountDown] §c" + countNumber);
+            
+            // تشغيل صوت النقر (Click Sound)
+            Level.playSound(x, y, z, "random.click", 1.0, 1.0 + (10 - countNumber) * 0.05);
+            
+            countNumber--;
+        } else if (countNumber == 0) {
+            // وصول العد للنهاية
+            clientMessage("§6§l[CountDown] §a§lGO!");
+            
+            // تشغيل صوت انفجار عند الصفر
+            Level.playSound(x, y, z, "random.explode", 1.0, 1.0);
+            
+            countNumber = -1; // إنهاء العد
         }
-    }
-}
-
-function checkAndDrop(x, y, z) {
-    var id = getTile(x, y, z);
-
-    // استثناء: الهواء (0)، البيدروك (7)، الماء (8, 9)، اللافا (10, 11)
-    if (id == 0 || id == 7 || id == 8 || id == 9 || id == 10 || id == 11) return;
-
-    var belowId = getTile(x, y - 1, z);
-
-    // إذا كان أسفل البلوك هواء أو سائل، يتم تنزيله فوراً
-    if (belowId == 0 || belowId == 8 || belowId == 9 || belowId == 10 || belowId == 11) {
-        var data = Level.getData(x, y, z);
-        setTile(x, y, z, 0, 0); // مسح البلوك العلوي
-        setTile(x, y - 1, z, id, data); // إنزاله للبلوك الأسفل
     }
 }
