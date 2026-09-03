@@ -1,85 +1,68 @@
-// Grappling Hook Mod for MCPE 0.14.3
-// يستخدم سنارة الصيد (Fishing Rod) للاندفاع والتنقل
+// Block Gravity Mod for MCPE 0.14.3 (Fixed & Auto-Check)
+// يجعل كل البلوكات المرتفعة تسقط تلقائياً كالرمل والجرافل باستثناء البيدروك (7)
 
-var isGrappling = false;
+var isGravityEnabled = true;
 
-function modTick() {
-    var player = Player.getEntity();
-    if (!player) return;
+function procCmd(command) {
+    var args = command.split(" ");
+    var cmd = args[0].toLowerCase();
 
-    // الحصول على الأداة التي يحملها اللاعب في يده
-    var carriedItem = Player.getCarriedItem();
-
-    // معرف سنارة الصيد (Fishing Rod) هو 346
-    if (carriedItem == 346) {
-        // البحث عن كائن رأس السنارة (Fish Hook Entity)
-        // عند رمي السنارة وتكون القوة متجهة لأسفل أو ثابتة على بلوكة
-        var pX = Entity.getX(player);
-        var pY = Entity.getY(player);
-        var pZ = Entity.getZ(player);
-
-        // في حال استخدام السنارة
-        if (Entity.getVelY(player) < -0.1 && isGrappling) {
-            isGrappling = false;
-        }
-    }
-}
-
-function useItem(x, y, z, itemid, blockid, side, itemdamage, blockdamage) {
-    // التقاط إشارة النقر بسنارة الصيد على البلوكات
-    if (itemid == 346) {
-        pullPlayerTo(x + 0.5, y + 1.5, z + 0.5);
-    }
-}
-
-function entityAddedHook(entity) {
-    // التنسيق عند إطلاق رأس السنارة
-    var type = Entity.getEntityTypeId(entity);
-    // معرف كائن خيط/رأس السنارة في ModPE هو 77
-    if (type == 77) {
-        new java.lang.Thread(function() {
-            try {
-                // الانتظار حتى تهبط السنارة على الهدف
-                java.lang.Thread.sleep(250);
-                
-                var player = Player.getEntity();
-                var hX = Entity.getX(entity);
-                var hY = Entity.getY(entity);
-                var hZ = Entity.getZ(entity);
-
-                // سحب اللاعب نحو موقع رأس السنارة بتأثير فيزيائي (Grappling Motion)
-                pullPlayerTo(hX, hY + 1, hZ);
-            } catch (err) {
-                // تجاهل الأخطاء
+    if (cmd == "gv" || cmd == "gravity") {
+        if (args.length > 1) {
+            var subCmd = args[1].toLowerCase();
+            if (subCmd == "on" || subCmd == "enable") {
+                isGravityEnabled = true;
+                clientMessage("§a[Gravity] Enabled!");
+                return;
+            } else if (subCmd == "off" || subCmd == "disable") {
+                isGravityEnabled = false;
+                clientMessage("§c[Gravity] Disabled!");
+                return;
             }
-        }).start();
+        }
+        isGravityEnabled = !isGravityEnabled;
+        if (isGravityEnabled) {
+            clientMessage("§a[Gravity] Enabled!");
+        } else {
+            clientMessage("§c[Gravity] Disabled!");
+        }
     }
 }
 
-// دالة حساب متجه السرعة والدفع (Grappling Physics)
-function pullPlayerTo(targetX, targetY, targetZ) {
+// فحص مستمر وحقيقي لكل البلوكات القريبة حول اللاعب في كل لحظة
+function modTick() {
+    if (!isGravityEnabled) return;
+
     var player = Player.getEntity();
     if (!player) return;
 
-    var pX = Entity.getX(player);
-    var pY = Entity.getY(player);
-    var pZ = Entity.getZ(player);
+    var px = Math.floor(Entity.getX(player));
+    var py = Math.floor(Entity.getY(player));
+    var pz = Math.floor(Entity.getZ(player));
 
-    // حساب المسافة والاتجاه
-    var dX = targetX - pX;
-    var dY = targetY - pY;
-    var dZ = targetZ - pZ;
-    var distance = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
-
-    if (distance > 1) {
-        // تطبيق قوة الدفع باتجاه الهدف
-        var speed = 1.5; // سرعة الاندفاع
-        var velX = (dX / distance) * speed;
-        var velY = (dY / distance) * speed + 0.3; // إضافة رفعة بسيطة لأعلى للقفز
-        var velZ = (dZ / distance) * speed;
-
-        Entity.setVelX(player, velX);
-        Entity.setVelY(player, velY);
-        Entity.setVelZ(player, velZ);
-    }
+    // فحص نطاق (Radius) حول اللاعب لأسقاط البلوكات المعلقة
+    var radius = 5;
+    for (var x = px - radius; x <= px + radius; x++) {
+        for (var y = 1; y <= py + 5; y++) {
+            for (var z = pz - radius; z <= pz + radius; z++) {
+                checkAndDrop(x, y, z);
+            }
         }
+    }
+}
+
+function checkAndDrop(x, y, z) {
+    var id = getTile(x, y, z);
+
+    // استثناء: الهواء (0)، البيدروك (7)، الماء (8, 9)، اللافا (10, 11)
+    if (id == 0 || id == 7 || id == 8 || id == 9 || id == 10 || id == 11) return;
+
+    var belowId = getTile(x, y - 1, z);
+
+    // إذا كان أسفل البلوك هواء أو سائل، يتم تنزيله فوراً
+    if (belowId == 0 || belowId == 8 || belowId == 9 || belowId == 10 || belowId == 11) {
+        var data = Level.getData(x, y, z);
+        setTile(x, y, z, 0, 0); // مسح البلوك العلوي
+        setTile(x, y - 1, z, id, data); // إنزاله للبلوك الأسفل
+    }
+}
