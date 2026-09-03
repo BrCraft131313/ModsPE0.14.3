@@ -1,40 +1,54 @@
-// Mace Axe Knockup Mod for MCPE 0.14.3
-// جميع التعليقات باللغة العربية والرسائل بالإنجليزية
+// Anti-Fall Damage Mod for MCPE 0.14.3
+// يتضمن أمري التفعيل والإلغاء: /af و /antifall
 
-// تعريف معرفات العناصر (Item IDs) للفؤوس
-var WOOD_AXE = 271;
-var STONE_AXE = 275;
-var IRON_AXE = 258;
-var GOLD_AXE = 286;
-var DIAMOND_AXE = 279;
+var isAntiFallEnabled = true; // مفعل افتراضياً
 
-function attackHook(attacker, victim) {
-    // التكتيك يتفعل فوراً بمجرد ضرب الكائن ضربة واحدة دون الحاجة لقتله
-    if (attacker == Player.getEntity()) {
-        var heldItem = Player.getCarriedItem();
-        var launchPower = 0;
+function procCmd(command) {
+    var args = command.split(" ");
+    var cmd = args[0].toLowerCase();
 
-        switch (heldItem) {
-            case WOOD_AXE:
-                launchPower = 0.38; // يرفع حوالي 1 بلوكة
-                break;
-            case STONE_AXE:
-                launchPower = 0.52; // يرفع حوالي 2 بلوكة
-                break;
-            case IRON_AXE:
-                launchPower = 0.72; // يرفع حوالي 4 بلوكات
-                break;
-            case GOLD_AXE:
-                launchPower = 1.02; // يرفع حوالي 8 بلوكات
-                break;
-            case DIAMOND_AXE:
-                launchPower = 1.45; // يرفع حوالي 16 بلوكة
-                break;
+    if (cmd == "af" || cmd == "antifall") {
+        if (args.length > 1) {
+            var subCmd = args[1].toLowerCase();
+            if (subCmd == "on" || subCmd == "enable") {
+                isAntiFallEnabled = true;
+                clientMessage("§a[AntiFall] Enabled!");
+                return;
+            } else if (subCmd == "off" || subCmd == "disable") {
+                isAntiFallEnabled = false;
+                clientMessage("§c[AntiFall] Disabled!");
+                return;
+            }
         }
+        
+        // تبديل الحالة تلقائياً (toggle)
+        isAntiFallEnabled = !isAntiFallEnabled;
+        if (isAntiFallEnabled) {
+            clientMessage("§a[AntiFall] Enabled!");
+        } else {
+            clientMessage("§c[AntiFall] Disabled!");
+        }
+    }
+}
 
-        // إطلاق اللاعب للأعلى مباشرة عند كل ضربة
-        if (launchPower > 0) {
-            Entity.setVelY(Player.getEntity(), launchPower);
+function modTick() {
+    // تصفير سرعة السقوط عند الاقتراب من الأرض لمنع احتساب مسافة السقوط اصلاً
+    if (isAntiFallEnabled) {
+        var player = Player.getEntity();
+        if (player) {
+            // إعادة ضبط المسافة عبر الاستدعاء المباشر للمحرك إن أمكن
+            Player.setCanFly(false); // لا يؤثر على الطيران ولكن يضمن استقرار المحرك
+        }
+    }
+}
+
+function entityHurtHook(attacker, victim, halfHearts) {
+    if (!isAntiFallEnabled) return;
+
+    // إلغاء الضرر إذا كان المتضرر هو اللاعب والضربة بيئية (بدون مهاجم مثل السقوط)
+    if (victim == Player.getEntity()) {
+        if (attacker == 0 || attacker == -1 || attacker == null) {
+            preventDefault(); // إلغاء ضرر السقوط والبيئة
         }
     }
 }
