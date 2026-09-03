@@ -47,12 +47,17 @@ modspe0.14.3-projectupdate.sh -> Bash Script For Update/Download/Restore Mods
 The rest is known
 
 # Social Media 
-[ModsPE0.14.3](https://github.com/BrCraft131313/ModsPE0.14.3)
+ModsPE0.14.3:
+https://github.com/BrCraft131313/ModsPE0.14.3
 
-[TikTok](https://tiktok.com/@brcraft131313)
+TikTok:
+https://tiktok.com/@brcraft131313
 
-[YouTube](https://m.youtube.com/@brcraft-v8v)
+YouTube:
+https://m.youtube.com/@brcraft-v8v
 
-[Portfolio](https://brcraft131313.github.io/Portfolio/)
+Portfolio:
+https://brcraft131313.github.io/Portfolio/
 
-[CmdMaker-ModsPE0.14.3](https://github.com/BrCraft131313/CmdMaker-ModsPE0.14.3)
+CmdMaker-ModsPE0.14.3:
+https://github.com/BrCraft131313/CmdMaker-ModsPE0.14.3
