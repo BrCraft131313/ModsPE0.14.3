@@ -1,106 +1,50 @@
-// حالة تفعيل المود
-var keepInventoryEnabled = true;
+var riddenMob = null;
+var isRidingMob = false;
+var SADDLE_ID = 329;
 
-// مصفوفات متغيرة لحفظ الأغراض والدروع
-var savedInventory = [];
-var savedArmor = [];
-var needsRestoring = false;
-var restoreTimer = 0;
-
-// 1. أمر تفعيل/إلغاء المود
-function procCmd(command) {
-    var cmd = command.toLowerCase().split(" ");
-    
-    if (cmd[0] == "keepinventory" || cmd[0] == "ki") {
-        keepInventoryEnabled = !keepInventoryEnabled;
-        if (keepInventoryEnabled) {
-            clientMessage("§a[KeepInventory] Mod is ENABLED!");
-        } else {
-            clientMessage("§c[KeepInventory] Mod is DISABLED!");
-        }
+function attackHook(attacker, victim) {
+    if (attacker == Player.getEntity() && Player.getCarriedItem() == SADDLE_ID) {
+        mountMob(victim);
+        preventDefault();
     }
 }
 
-// 2. التقاط لحظة الموت وتفريغ الشنطة فوراً لتجنب التدبيل
-function entityHurtHook(attacker, victim, halfHearts) {
-    if (!keepInventoryEnabled) return;
+function useItemOnEntity(entity, itemId, side) {
+    if (itemId == SADDLE_ID) mountMob(entity);
+}
 
-    if (victim == Player.getEntity()) {
-        var currentHealth = Entity.getHealth(Player.getEntity());
-        
-        // عند حدوث الضربة القاضية
-        if (currentHealth - halfHearts <= 0 && !needsRestoring) {
-            
-            savedInventory = [];
-            savedArmor = [];
-            
-            // أ) حفظ ثم مسح الشنطة (36 خانة)
-            for (var i = 0; i < 36; i++) {
-                var id = Player.getInventorySlot(i);
-                var count = Player.getInventorySlotCount(i);
-                var data = Player.getInventorySlotData(i);
-                
-                if (id > 0 && count > 0) {
-                    savedInventory.push({id: id, count: count, data: data});
-                }
-                // تفريغ الخانة حتى لا تتدبل بعد الرسبنة
-                Player.clearInventorySlot(i);
-            }
-            
-            // ب) حفظ ثم مسح الدروع (4 خانات)
-            for (var a = 0; a < 4; a++) {
-                var armorId = Player.getArmorSlot(a);
-                var armorDamage = Player.getArmorSlotDamage(a);
-                
-                if (armorId > 0) {
-                    savedArmor.push({slot: a, id: armorId, damage: armorDamage});
-                }
-                // مسح خانة الدرع
-                Player.setArmorSlot(a, 0, 0);
-            }
-            
-            needsRestoring = true;
-            restoreTimer = 15;
-            
-            clientMessage("§a[KeepInventory] Your items and armor have been saved!");
-        }
+function mountMob(mob) {
+    if (mob != Player.getEntity()) {
+        riddenMob = mob;
+        isRidingMob = true;
+        clientMessage("§a[Saddle Mod] Mounted!");
     }
 }
 
-// 3. إعادة الأغراض والدروع المحفوظة فقط
 function modTick() {
-    if (needsRestoring) {
-        if (Entity.getHealth(Player.getEntity()) > 0) {
-            if (restoreTimer > 0) {
-                restoreTimer--;
-            } else {
-                // أ) استرجاع عناصر الشنطة
-                for (var i = 0; i < savedInventory.length; i++) {
-                    var item = savedInventory[i];
-                    addItemInventory(item.id, item.count, item.data);
-                }
-                
-                // ب) استرجاع الدروع
-                for (var a = 0; a < savedArmor.length; a++) {
-                    var armor = savedArmor[a];
-                    Player.setArmorSlot(armor.slot, armor.id, armor.damage);
-                }
-                
-                // تنظيف البيانات والتصفير
-                savedInventory = [];
-                savedArmor = [];
-                needsRestoring = false;
-                
-                clientMessage("§e[KeepInventory] All your items and armor were restored!");
-            }
+    if (isRidingMob && riddenMob != null) {
+        var player = Player.getEntity();
+
+        // النزول بالشفت
+        if (Entity.isSneaking(player) || Entity.getHealth(riddenMob) <= 0) {
+            isRidingMob = false;
+            riddenMob = null;
+            clientMessage("§c[Saddle Mod] Dismounted!");
+            return;
         }
+
+        // سحب الموب تحت رجول اللاعب مباشرة دون استخدام rideAnimal المكسورة
+        var px = Entity.getX(player);
+        var py = Entity.getY(player) - 1.2; // يخليه تحتك بالضبط
+        var pz = Entity.getZ(player);
+        var yaw = Entity.getYaw(player);
+
+        Entity.setPosition(riddenMob, px, py, pz);
+        Entity.setRot(riddenMob, yaw, 0);
     }
 }
 
-// 4. عند دخول العالم
 function newLevel() {
-    needsRestoring = false;
-    restoreTimer = 0;
-    clientMessage("§bKeepInventory Mod Active!");
-    clientMessage("§eToggle Command: §f/keepinventory");
-    }
+    riddenMob = null;
+    isRidingMob = false;
+}
