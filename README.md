@@ -57,7 +57,4 @@ YouTube:
 https://m.youtube.com/@brcraft-v8v
 
 Portfolio:
-https://brcraft131313.github.io/Portfolio/
-
-CmdMaker-ModsPE0.14.3:
-https://github.com/BrCraft131313/CmdMaker-ModsPE0.14.3
+https://brcraft131313.github.io/Portfolio
