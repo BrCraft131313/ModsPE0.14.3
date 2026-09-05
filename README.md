@@ -1,6 +1,6 @@
 # ModsPE0.14.3
 # Important announcement ⚠️
-Go To Discussions!
+Go To [Discussions](https://github.com/BrCraft131313/ModsPE0.14.3/discussions/4#discussion-10755000)!
 
 There is an important vote!
 # Logo
