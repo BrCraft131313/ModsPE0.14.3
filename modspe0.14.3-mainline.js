@@ -1,88 +1,44 @@
-// Performance Booster with On-Screen UI Button for MCPE 0.14.3
-// By BrCraft131313
+// متغير تفعيل وضع الكرة
+var isBallModeActive = false;
 
-var btnWindow = null;
-var disableParticles = false;
-
-// تشغيل الواجهة عند فتح العالم
-function selectLevelHook() {
-    var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
+// تفعيل وإلغاء الأمر /ball
+function procCmd(cmd) {
+    var args = cmd.split(" ");
     
-    ctx.runOnUiThread(new java.lang.Runnable({
-        run: function() {
-            try {
-                // إنشاء تخطيط الزر (Layout)
-                var layout = new android.widget.LinearLayout(ctx);
-                var btn = new android.widget.Button(ctx);
-                
-                btn.setText("⚡ Clean");
-                btn.setTextColor(android.graphics.Color.YELLOW);
-                btn.setTextSize(12);
-                
-                // جعل خلفية الزر شبه شفافة
-                btn.setBackgroundColor(android.graphics.Color.argb(100, 0, 0, 0)); 
-
-                // عند الضغط على الزر
-                btn.setOnClickListener(new android.view.View.OnClickListener({
-                    onClick: function(v) {
-                        var count = cleanWorld();
-                        print("§a[LagFix] Cleaned " + count + " items & RAM!");
-                    }
-                }));
-
-                layout.addView(btn);
-
-                // تحديد موقع الزر أعلى الزاوية اليسار (مكان الدائرة البرتقالية)
-                btnWindow = new android.widget.PopupWindow(layout, android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT, android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
-                btnWindow.showAtLocation(ctx.getWindow().getDecorView(), android.view.Gravity.LEFT | android.view.Gravity.TOP, 10, 10);
-            } catch (e) {
-                print("Error UI: " + e);
-            }
-        }
-    }));
-}
-
-// إخفاء الزر عند الخروج من العالم
-function leaveGame() {
-    if (btnWindow != null) {
-        var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
-        ctx.runOnUiThread(new java.lang.Runnable({
-            run: function() {
-                if (btnWindow != null) {
-                    btnWindow.dismiss();
-                    btnWindow = null;
-                }
-            }
-        }));
-    }
-}
-
-// دالة إلغاء الجسيمات
-function particleCreatedHook(particleType, x, y, z, vx, vy, vz) {
-    if (disableParticles) {
-        preventDefault();
-    }
-}
-
-// دالة التنظيف المباشر
-function cleanWorld() {
-    var count = 0;
-    var entities = Entity.getAll();
-    for (var i = 0; i < entities.length; i++) {
-        var ent = entities[i];
-        if (Entity.getEntityTypeId(ent) == 64) { // 64 = Dropped Item
-            Entity.remove(ent);
-            count++;
+    if (args[0] === "ball") {
+        isBallModeActive = !isBallModeActive;
+        
+        if (isBallModeActive) {
+            clientMessage("§a[BallMod] Wool Physics Enabled!");
+        } else {
+            clientMessage("§c[BallMod] Wool Physics Disabled.");
         }
     }
-    java.lang.System.gc(); // تفريغ ذاكرة الـ RAM
-    return count;
 }
 
-function procCmd(command) {
-    var args = command.split(" ");
-    if (args[0].toLowerCase() == "noparticles") {
-        disableParticles = !disableParticles;
-        clientMessage("§e[LagFix] Particles disabled: " + disableParticles);
+// عند الضغط على أي بلوكة صوف
+function useItem(x, y, z, itemId, blockId, side, blockDamage) {
+    // إذا كان المود مفعلاً والبلوكة صوف (ID: 35)
+    if (isBallModeActive && blockId == 35) {
+        
+        // معرفة اتجاه وجه اللاعب (0=جنوب, 1=غرب, 2=شمال, 3=شرق)
+        var yaw = Entity.getYaw(Player.getEntity());
+        var direction = Math.floor((yaw + 45) / 90) % 4;
+        if (direction < 0) direction += 4;
+        
+        // تحديد الإحداثيات الجديدة بناءً على اتجاه النظر
+        var newX = x;
+        var newZ = z;
+        
+        if (direction == 0) newZ += 1;      // للأمام (جنوب)
+        else if (direction == 1) newX -= 1; // لليسار (غرب)
+        else if (direction == 2) newZ -= 1; // للخلف (شمال)
+        else if (direction == 3) newX += 1; // لليمين (شرق)
+        
+        // إزالة الصوف القديم
+        setTile(x, y, z, 0);
+        
+        // وضع الصوف في المكان الجديد بنفس اللون
+        setTile(newX, y, newZ, 35, blockDamage);
     }
 }
