@@ -1,70 +1,78 @@
-// خريطة لربط أسماء الكائنات بالـ ID الخاص بها في MCPE 0.14.3
-var entityIds = {
-    "chicken": 10,
-    "cow": 11,
-    "pig": 12,
-    "sheep": 13,
-    "wolf": 14,
-    "villager": 15,
-    "mooshroom": 16,
-    "squid": 17,
-    "rabbit": 18,
-    "bat": 19,
-    "iron_golem": 20,
-    "snow_golem": 21,
-    "ocelot": 22,
-    "zombie": 32,
-    "creeper": 33,
-    "skeleton": 34,
-    "spider": 35,
-    "zombie_pigman": 36,
-    "slime": 37,
-    "enderman": 38,
-    "cave_spider": 39,
-    "silverfish": 40,
-    "blaze": 41,
-    "magma_cube": 42,
-    "ghast": 41,
-    "witch": 45
-};
-
-function procCmd(cmd) {
-    var args = cmd.split(" ");
+// البحث عن أهداف القرويين في كل دورة (modTick)
+function modTick() {
+    var allEntities = Entity.getAll();
     
-    // عند كتابة /summon
-    if (args[0] === "summon") {
-        if (args.length >= 2) {
-            var entityName = args[1].toLowerCase();
-            // إذا لم يحدد اللاعب العدد، يفترض أن العدد 1 تلقائياً
-            var quantity = args[2] ? parseInt(args[2]) : 1;
+    for (var i = 0; i < allEntities.length; i++) {
+        var ent = allEntities[i];
+        
+        // التحقق مما إذا كان الكائن قروي (Villager ID: 15)
+        if (Entity.getEntityTypeId(ent) == 15) {
+            var vx = Math.floor(Entity.getX(ent));
+            var vy = Math.floor(Entity.getY(ent));
+            var vz = Math.floor(Entity.getZ(ent));
             
-            // التحقق من صحة اسم الكائن
-            if (entityIds.hasOwnProperty(entityName)) {
-                var typeId = entityIds[entityName];
+            // البحث عن أقرب هدف في نطاق 10 بلوكات حول القروي
+            var target = findNearestTarget(vx, vy, vz, 10);
+            
+            if (target != null) {
+                // حساب الاتجاه نحو الهدف
+                var dx = (target.x + 0.5) - Entity.getX(ent);
+                var dz = (target.z + 0.5) - Entity.getZ(ent);
+                var distance = Math.sqrt(dx * dx + dz * dz);
                 
-                // جلب إحداثيات اللاعب لرسبنة الكائنات عنده
-                var player = Player.getEntity();
-                var px = Entity.getX(player);
-                var py = Entity.getY(player);
-                var pz = Entity.getZ(player);
-                
-                // تحديد حد أقصى للرسبنة (مثلاً 500) لمنع الكراش واللاغ القوي
-                if (quantity > 500) {
-                    quantity = 500;
-                    clientMessage("§c[SummonMod] Quantity capped at 500 to prevent lag!");
+                // إذا كان القروي بعيداً عن الهدف، سحبه بقوة نحو الهدف
+                if (distance > 1.2) {
+                    var speed = 0.25; // سرعة الحركة
+                    
+                    // دفع القروي مباشرة نحو الهدف (يتغلب على المشي العشوائي)
+                    Entity.setVelX(ent, (dx / distance) * speed);
+                    Entity.setVelZ(ent, (dz / distance) * speed);
+                    
+                    // التدوير المباشر لنظر القروي نحو البلوكة
+                    var yaw = Math.atan2(dz, dx) * (180 / Math.PI) - 90;
+                    Entity.setRot(ent, yaw, 0);
+                    
+                    // قفز تلقائي إذا صادف القروي بلوكة في طريقه
+                    var nextX = Math.floor(Entity.getX(ent) + (dx / distance) * 0.8);
+                    var nextZ = Math.floor(Entity.getZ(ent) + (dz / distance) * 0.8);
+                    if (getTile(nextX, Math.floor(Entity.getY(ent)), nextZ) != 0) {
+                        Entity.setVelY(ent, 0.35);
+                    }
+                } else {
+                    // التوقف التام عند الوصول للهدف
+                    Entity.setVelX(ent, 0);
+                    Entity.setVelZ(ent, 0);
                 }
-                
-                // حلقة تكرار لرسبنة العدد المطلوب
-                for (var i = 0; i < quantity; i++) {
-                    Level.spawnMob(px, py, pz, typeId);
-                }
-                
-                clientMessage("§a[SummonMod] Spawned " + quantity + " " + entityName + "(s)!");
-            } else {
-                clientMessage("§c[Error] Unknown entity name: " + entityName);
             }
-        } else {
-            clientMessage("§eUsage: /summon <entityName> [quantity]");
         }
     }
+}
+
+// دالة للبحث عن أقرب سرير أو بلوكة إيميرلد
+function findNearestTarget(px, py, pz, radius) {
+    var nearestDist = 999;
+    var targetPos = null;
+    
+    // الفحص في نطاق مربّع حول القروي
+    for (var x = -radius; x <= radius; x++) {
+        for (var y = -2; y <= 3; y++) {
+            for (var z = -radius; z <= radius; z++) {
+                var bx = px + x;
+                var by = py + y;
+                var bz = pz + z;
+                
+                var blockId = getTile(bx, by, bz);
+                
+                // ID السرير = 26 | ID بلوكة الإيميرلد = 133
+                if (blockId == 26 || blockId == 133) {
+                    var dist = Math.sqrt(x * x + y * y + z * z);
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        targetPos = {x: bx, y: by, z: bz};
+                    }
+                }
+            }
+        }
+    }
+    return targetPos;
 }
