@@ -1,81 +1,88 @@
-// ================================================
-// ModPE Script: Companion Dog Challenge
-// Target: Minecraft PE 0.14.3 / BlockLauncher
-// ================================================
+// متغيرات تتبع حالة الجوع والماء
+var lastHunger = -1;
+var maxWater = 20;
+var currentWater = 20;
 
-// متغيرات حفظ حالة الكلب وإحداثيات الجلوس
-var dogEntity = null;
-var isDogSitting = false;
-var sitX = 0;
-var sitY = 0;
-var sitZ = 0;
+// متغيرات تتبع العناصر التي يحملها اللاعب
+var lastCarriedId = -1;
+var lastCarriedCount = 0;
+var lastCarriedData = -1;
 
-// دالة newLevel لضمان تنفيذ الترسبن فور إكتمال تحميل العالم
+// حدث بدء العالم أو الدخول إليه
 function newLevel() {
-    isDogSitting = false;
-
-    var px = getPlayerX();
-    var py = getPlayerY();
-    var pz = getPlayerZ();
-
-    // إعطاء اللاعب عصا الجلوس (ID: 280) عند الدخول
-    Player.addItemInventory(280, 1, 0);
-    clientMessage("§b[Companion Mod] §aYou received the Sit Stick! Your companion is here.");
-
-    // ترسبن الذئب بشكل صحيح باستخدام Level.spawnMob لمنع خطأ ReferenceError
-    // تم رفع الإحداثي Y بمقدار 1 لمنع اختناقه داخل الأرض
-    dogEntity = Level.spawnMob(px + 1, py + 1, pz + 1, 14);
-
-    if (dogEntity != null) {
-        Entity.setHealth(dogEntity, 20);
-    }
+    lastHunger = Player.getHunger();
+    currentWater = maxWater;
+    lastCarriedId = Player.getCarriedItem();
+    lastCarriedCount = Player.getCarriedItemCount();
+    lastCarriedData = Player.getCarriedItemData();
 }
 
-// التحديث المستمر لمتابعة حالة الكلب وتثبيته عند الجلوس
+// حدث التكرار البرمجي المباشر
 function modTick() {
-    if (dogEntity != null) {
-        // التحقق من موت الكلب وخروج اللاعب من العالم فوراً
-        if (Entity.getHealth(dogEntity) <= 0) {
-            clientMessage("§c[Companion Mod] §4Your companion died! Leaving the world...");
-            dogEntity = null;
-            ModPE.leaveGame();
-            return;
-        }
+    var player = Player.getEntity();
+    var currentHunger = Player.getHunger();
 
-        // تثبيت إحداثيات الكلب بالكامل ومنع حركته أثناء وضع الجلوس
-        if (isDogSitting) {
-            Entity.setPosition(dogEntity, sitX, sitY, sitZ);
-            Entity.setVelX(dogEntity, 0);
-            Entity.setVelY(dogEntity, 0);
-            Entity.setVelZ(dogEntity, 0);
-        }
-    }
-}
+    // التهيئة المبدئية
+    if (lastHunger === -1) {
+        lastHunger = currentHunger;
+    } else {
+        // حساب فرق نقص الجوع
+        var hungerDiff = lastHunger - currentHunger;
 
-// دالة استخدام العنصر (الضغط على البلوكة بالعصا)
-function useItem(x, y, z, itemId, blockId, side) {
-    // التحقق من أن العنصر المستعمل هو عصا Sit Stick (ID 280)
-    if (itemId == 280) {
-        preventDefault();
+        if (hungerDiff > 0) {
+            var currentHealth = Entity.getHealth(player);
 
-        if (dogEntity != null && Entity.getHealth(dogEntity) > 0) {
-            if (!isDogSitting) {
-                // تفعيل وضع الجلوس وحفظ إحداثيات البلوكة
-                isDogSitting = true;
-
-                sitX = x + 0.5;
-                sitY = y + 1.0;
-                sitZ = z + 0.5;
-
-                Entity.setPosition(dogEntity, sitX, sitY, sitZ);
-                clientMessage("Sit: §2ON!");
-            } else {
-                // إلغاء وضع الجلوس ليعود للتبعية
-                isDogSitting = false;
-                clientMessage("Sit: §4OFF!");
+            // حالة نقص نصف هنقر: نقص موية وتضرر قلب واحد
+            if (hungerDiff === 1) {
+                currentWater = Math.max(0, currentWater - 1);
+                var newHealth = Math.max(0, currentHealth - 2);
+                Entity.setHealth(player, newHealth);
+                clientMessage("You lost 1 water level and took 1 heart of damage!");
             }
-        } else {
-            clientMessage("§cNo companion available!");
+            // حالة نقص هنقر كامل أو أكثر: نقص مويتين وتضرر قلبين
+            else if (hungerDiff >= 2) {
+                currentWater = Math.max(0, currentWater - 2);
+                var newHealth = Math.max(0, currentHealth - 4);
+                Entity.setHealth(player, newHealth);
+                clientMessage("You lost 2 water levels and took 2 hearts of damage!");
+            }
+
+            lastHunger = currentHunger;
+        } else if (currentHunger > lastHunger) {
+            lastHunger = currentHunger;
         }
     }
+
+    // فحص عملية شرب الماء عبر تتبع تغير القارورة في اليد
+    var currentId = Player.getCarriedItem();
+    var currentCount = Player.getCarriedItemCount();
+    var currentData = Player.getCarriedItemData();
+
+    // إذا كان اللاعب يحمل قارورة ماء (ID 373 Data 0) وتم شربها
+    if (lastCarriedId === 373 && lastCarriedData === 0) {
+        // تحقق من نقصان العدد أو تحول القارورة إلى فارغة (ID 374)
+        if ((currentId === 373 && currentCount < lastCarriedCount) || currentId === 374) {
+            var currentHealth = Entity.getHealth(player);
+            var maxHealth = 20;
+
+            // زيادة الصحة بمقدار قلب واحد (2 نقاط صحة)
+            var newHealth = Math.min(maxHealth, currentHealth + 2);
+            Entity.setHealth(player, newHealth);
+
+            // زيادة الجوع بمقدار نصف هنقر (1 نقطة)
+            var newHunger = Math.min(20, Player.getHunger() + 1);
+            Player.setHunger(newHunger);
+            lastHunger = newHunger;
+
+            // استرجاع مستوى الماء
+            currentWater = Math.min(maxWater, currentWater + 2);
+
+            clientMessage("You drank water and restored 1 heart and 0.5 hunger!");
+        }
+    }
+
+    // تحديث قيم العنصر المحمول للFrame القادم
+    lastCarriedId = currentId;
+    lastCarriedCount = currentCount;
+    lastCarriedData = currentData;
 }
