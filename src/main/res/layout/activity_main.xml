@@ -1,35 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/commandNameInput"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="اسم الأمر (Command Name - e.g. gift)" />
+        android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/messageInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="الرسالة التي تظهر في الشات (Message)" />
+        <!-- Top Bar: Title & Language Switcher -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
 
-    <EditText
-        android:id="@+id/functionInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="الدالة (Function)"
-        android:inputType="textMultiLine"
-        android:minLines="3" />
+            <TextView
+                android:id="@+id/appTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="Mod Maker PE 0.14.3"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/exportButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="تصدير المود (.js)"
-        android:layout_marginTop="16dp" />
+            <Button
+                android:id="@+id/btnLangToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="🌐 EN / عربي"
+                android:textSize="12sp" />
+        </RelativeLayout>
 
-</LinearLayout>
+        <!-- Author Input -->
+        <TextView
+            android:id="@+id/lblAuthor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Author (اسم المطور):"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:id="@+id/authorInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="مثال: Bader"
+            android:inputType="textPersonName"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Mod Name Input -->
+        <TextView
+            android:id="@+id/lblModName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mod Name (اسم المود):"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:id="@+id/modNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="مثال: SuperSword"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Mod Code Preview -->
+        <TextView
+            android:id="@+id/lblCodePreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="كود المود المجمع (Mod Code Preview):"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:id="@+id/codePreview"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:gravity="top|start"
+            android:hint="// اضغط [Add Func] لإضافة دوال أو [Edit Mod] للتعديل المباشر"
+            android:background="#1E1E1E"
+            android:textColor="#00FF00"
+            android:padding="10dp"
+            android:textSize="13sp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Buttons Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <Button
+                android:id="@+id/btnAddFunc"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="[Add Func]"
+                android:textSize="11sp"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnEditMod"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="[Edit Mod]"
+                android:textSize="11sp"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnExport"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="[Export]"
+                android:textSize="11sp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
