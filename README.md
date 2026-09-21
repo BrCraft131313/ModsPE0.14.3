@@ -35,10 +35,7 @@ Then Enjoy!
 GPL3
 
 # The Releases 
-
-All My Mods In This Release 
-
-CMD Maker For MCPE 0.14.3
+[The Releases](https://github.com/BrCraft131313/ModsPE0.14.3/releases)
 # Index
 
 modspe0.14.3-devguide/easy.txt -> Dev Guide File
@@ -58,6 +55,7 @@ https://tiktok.com/@brcraft131313
 
 YouTube:
 https://m.youtube.com/@brcraft-v8v
+
 https://m.youtube.com/@BrCraft_2
 Portfolio:
 https://brcraft131313.github.io/Portfolio
