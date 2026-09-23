@@ -1,62 +1,117 @@
 /*
- * اسم المود: Gravity & Tornado Wand
- * الإصدار المستهدف: MCPE 0.14.3
- * المعيار: MECANE
+ * Mod Name   : Villager Trading System
+ * Target Ver : MCPE 0.14.3
+ * Standard   : MECANE (Messages English, Comments Arabic, No Emojis)
  */
 
-// متغيرات حالة المود
-var isTornadoActive = false;
-var tornadoRadius = 8;
-var liftForce = 0.35;
+var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
 
-// الدالة الرئيسية المستدعات مع كل إطار زمن (Tick)
-function modTick() {
-    if (isTornadoActive) {
-        var playerX = Player.getX();
-        var playerY = Player.getY();
-        var playerZ = Player.getZ();
+// معرفات العناصر والموارد المستخدمة
+var EMERALD = 388;
+var COAL = 263;
+var BREAD = 297;
+var IRON_SWORD = 267;
+var GOLDEN_APPLE = 322;
 
-        // جلب جميع الكيانات المجاورة
-        var entities = Entity.getAll();
-        for (var i = 0; i < entities.length; i++) {
-            var ent = entities[i];
-            
-            // استثناء اللاعب نفسه من التأثير
-            if (ent != Player.getEntity()) {
-                var entX = Entity.getX(ent);
-                var entY = Entity.getY(ent);
-                var entZ = Entity.getZ(ent);
+// اعتراض حدث ضرب أو النقر على الكائنات
+function attackHook(attacker, victim) {
+    // التحقق من أن المعتدي هو اللاعب وأن الهدف قروي (Villager Entity ID = 15)
+    if (attacker == Player.getEntity() && Entity.getEntityTypeId(victim) == 15) {
+        // إلغاء إلحاق الضرر بالقروي عند فتح قائمة المقايضة
+        preventDefault();
+        
+        // فتح واجهة المقايضة
+        openTradeGUI();
+    }
+}
 
-                // حساب المسافة بين الكيان واللاعب
-                var dx = entX - playerX;
-                var dz = entZ - playerZ;
-                var distance = Math.sqrt(dx * dx + dz * dz);
+// إنشاء واجهة خيارات المقايضة
+function openTradeGUI() {
+    ctx.runOnUiThread(new java.lang.Runnable({
+        run: function() {
+            try {
+                var builder = new android.app.AlertDialog.Builder(ctx);
+                builder.setTitle("Villager Trade Market");
 
-                // تطبيق قوة الإعصار إذا كان الكيان ضمن النطاق
-                if (distance <= tornadoRadius && distance > 0.5) {
-                    var angle = Math.atan2(dz, dx) + 0.3; // زاوية الدوران الحلزوني
-                    var newVelX = -Math.sin(angle) * 0.5;
-                    var newVelZ = Math.cos(angle) * 0.5;
+                // قائمة الصفقات المتاحة لدى القروي
+                var trades = [
+                    "1. 5 Emeralds -> 1 Iron Sword",
+                    "2. 10 Coal -> 1 Emerald",
+                    "3. 3 Emeralds -> 8 Bread",
+                    "4. 8 Emeralds -> 1 Golden Apple"
+                ];
 
-                    // تطبيق المتجهات لرسم حركة الإعصار
-                    Entity.setVelX(ent, newVelX);
-                    Entity.setVelY(ent, liftForce);
-                    Entity.setVelZ(ent, newVelZ);
-                }
+                builder.setItems(trades, new android.content.DialogInterface.OnClickListener({
+                    onClick: function(dialog, which) {
+                        processTrade(which);
+                    }
+                }));
+
+                builder.setNegativeButton("Close", null);
+                builder.create().show();
+
+            } catch(e) {
+                print("Trade GUI Error: " + e);
             }
+        }
+    }));
+}
+
+// تنفيذ صفقة المقايضة بناء على الخيار المحدد
+function processTrade(tradeIndex) {
+    var heldItem = Player.getCarriedItem();
+    var heldCount = Player.getCarriedItemCount();
+
+    // الصفقة 1: 5 زمرد مقابل سيف حديدي
+    if (tradeIndex == 0) {
+        if (heldItem == EMERALD && heldCount >= 5) {
+            deductHeldItem(EMERALD, 5);
+            Player.addItemInventory(IRON_SWORD, 1, 0);
+            clientMessage("[Trade] Successful: Acquired 1x Iron Sword.");
+        } else {
+            clientMessage("[Trade] Failed: Hold at least 5 Emeralds in hand.");
+        }
+    }
+    // الصفقة 2: 10 فحم مقابل زمردة
+    else if (tradeIndex == 1) {
+        if (heldItem == COAL && heldCount >= 10) {
+            deductHeldItem(COAL, 10);
+            Player.addItemInventory(EMERALD, 1, 0);
+            clientMessage("[Trade] Successful: Acquired 1x Emerald.");
+        } else {
+            clientMessage("[Trade] Failed: Hold at least 10 Coal in hand.");
+        }
+    }
+    // الصفقة 3: 3 زمرد مقابل 8 خبز
+    else if (tradeIndex == 2) {
+        if (heldItem == EMERALD && heldCount >= 3) {
+            deductHeldItem(EMERALD, 3);
+            Player.addItemInventory(BREAD, 8, 0);
+            clientMessage("[Trade] Successful: Acquired 8x Bread.");
+        } else {
+            clientMessage("[Trade] Failed: Hold at least 3 Emeralds in hand.");
+        }
+    }
+    // الصفقة 4: 8 زمرد مقابل تفاحة ذهبية
+    else if (tradeIndex == 3) {
+        if (heldItem == EMERALD && heldCount >= 8) {
+            deductHeldItem(EMERALD, 8);
+            Player.addItemInventory(GOLDEN_APPLE, 1, 0);
+            clientMessage("[Trade] Successful: Acquired 1x Golden Apple.");
+        } else {
+            clientMessage("[Trade] Failed: Hold at least 8 Emeralds in hand.");
         }
     }
 }
 
-// استخدام عصا التحكم عند الضغط على الأرض
-function useItem(x, y, z, itemId, blockId, side) {
-    // باستخدام Stick (ID 280)
-    if (itemId == 280) {
-        isTornadoActive = !isTornadoActive;
-        if (isTornadoActive) {
-            clientMessage("[GravityMod] Tornado Field: ACTIVATED");
-        } else {
-            clientMessage("[GravityMod] Tornado Field: DEACTIVATED");
-        }
+// دالة الخصم المباشر من العنصر الممسوك بيد اللاعب
+function deductHeldItem(itemId, amount) {
+    var currentCount = Player.getCarriedItemCount();
+    var newCount = currentCount - amount;
+
+    if (newCount > 0) {
+        Entity.setCarriedItem(Player.getEntity(), itemId, newCount, 0);
+    } else {
+        Entity.setCarriedItem(Player.getEntity(), 0, 0, 0);
     }
 }
