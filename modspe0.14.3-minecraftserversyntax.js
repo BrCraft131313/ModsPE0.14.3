@@ -1,6 +1,6 @@
 /*
  * Library Name : modspe0.14.3-@minecraft/serversyntax.js
- * Description  : Polyfill Wrapper translating full MCPE 0.14.3 ModPE functions into @minecraft/server API syntax.
+ * Description  : Polyfill Wrapper translating full MCPE 0.14.3 ModPE functions into @minecraft/server API syntax with Native Android & Java extensions.
  * Standard     : MECANE (Messages in English, Comments in Arabic, No Emojis)
  */
 
@@ -114,7 +114,7 @@ Object.defineProperty(MinecraftEntity.prototype, "velocity", {
         return {
             x: Entity.getVelX(this.id),
             y: Entity.getVelY(this.id),
-            z: Entity.getVelZ(this.id)
+            z: Entity.getZ(this.id)
         };
     }
 });
@@ -185,7 +185,6 @@ MinecraftEntity.prototype.ride = function(targetEntity) {
     Entity.rideAnimal(this.id, targetEntity.id || targetEntity);
 };
 
-// محاكاة المكونات الداخلية للكيان (Health, Hunger, Inventory)
 MinecraftEntity.prototype.getComponent = function(componentId) {
     var self = this;
     if (componentId === "minecraft:health") {
@@ -199,7 +198,6 @@ MinecraftEntity.prototype.getComponent = function(componentId) {
     return null;
 };
 
-// محاكاة كائن اللاعب (Player Wrapper)
 function MinecraftPlayer(entityId) {
     MinecraftEntity.call(this, entityId);
 }
@@ -520,13 +518,11 @@ var system = {
 function modTick() {
     _mc_current_tick++;
 
-    // 1. معالجة مهام الدورة التكرارية القادمة (system.run)
     while (_mc_nextTickQueue.length > 0) {
         var fn = _mc_nextTickQueue.shift();
         try { fn(); } catch(e) { print("Error in system.run: " + e); }
     }
 
-    // 2. معالجة الفواصل الزمنية (system.runInterval)
     for (var i = 0; i < _mc_intervals.length; i++) {
         var task = _mc_intervals[i];
         task.current++;
@@ -536,7 +532,6 @@ function modTick() {
         }
     }
 
-    // 3. معالجة المؤقتات المحددة بوقت (system.runTimeout)
     for (var j = _mc_timeouts.length - 1; j >= 0; j--) {
         var timer = _mc_timeouts[j];
         timer.current++;
@@ -675,3 +670,212 @@ function redstoneUpdateHook(x, y, z, newCurrent, isWorldBuilder, blockId, blockD
         catch(e) { print("Error in redstoneUpdate: " + e); }
     }
 }
+
+// ==========================================
+// 9. واجهات أندرويد، اهتزاز الجهاز، التعامل مع الملفات، وطلبات الشبكة
+// ==========================================
+
+// دالة مساعدة للحصول على MainActivity الخاصة باللعبة
+function _getMainActivity() {
+    return com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
+}
+
+// أداة واجهات أندرويد الأصليّة (Android Native GUI)
+var ui = {
+    showToast: function(text) {
+        var activity = _getMainActivity();
+        activity.runOnUiThread(new java.lang.Runnable({
+            run: function() {
+                try {
+                    android.widget.Toast.makeText(activity, text, android.widget.Toast.LENGTH_SHORT).show();
+                } catch(e) {
+                    ModPE.log("UI Toast Error: " + e);
+                }
+            }
+        }));
+    },
+    showDialog: function(options) {
+        var activity = _getMainActivity();
+        var title = options.title || "Notification";
+        var message = options.message || "";
+        var buttonText = options.buttonText || "OK";
+        var onConfirm = options.onConfirm;
+
+        activity.runOnUiThread(new java.lang.Runnable({
+            run: function() {
+                try {
+                    var builder = new android.app.AlertDialog.Builder(activity);
+                    builder.setTitle(title);
+                    builder.setMessage(message);
+                    builder.setPositiveButton(buttonText, new android.content.DialogInterface.OnClickListener({
+                        onClick: function(dialog, which) {
+                            if (typeof onConfirm === "function") {
+                                onConfirm();
+                            }
+                            dialog.dismiss();
+                        }
+                    }));
+                    builder.create().show();
+                } catch(e) {
+                    ModPE.log("UI Dialog Error: " + e);
+                }
+            }
+        }));
+    },
+    openWebView: function(url) {
+        var activity = _getMainActivity();
+        activity.runOnUiThread(new java.lang.Runnable({
+            run: function() {
+                try {
+                    var webView = new android.webkit.WebView(activity);
+                    webView.getSettings().setJavaScriptEnabled(true);
+                    webView.loadUrl(url);
+
+                    var builder = new android.app.AlertDialog.Builder(activity);
+                    builder.setView(webView);
+                    builder.setPositiveButton("Close", null);
+                    builder.create().show();
+                } catch(e) {
+                    ModPE.log("UI WebView Error: " + e);
+                }
+            }
+        }));
+    }
+};
+
+// أداة التحكم باهتزاز الجهاز (Device Hardware Vibration)
+var device = {
+    vibrate: function(milliseconds) {
+        try {
+            var activity = _getMainActivity();
+            var vibrator = activity.getSystemService(android.content.Context.VIBRATOR_SERVICE);
+            if (vibrator !== null) {
+                vibrator.vibrate(milliseconds || 500);
+            }
+        } catch(e) {
+            ModPE.log("Device Vibration Error: " + e);
+        }
+    }
+};
+
+// أداة إدارة وقراءة/كتابة الملفات (Java File I/O)
+var fileIO = {
+    writeText: function(filePath, content, append) {
+        try {
+            var file = new java.io.File(filePath);
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+            var writer = new java.io.FileWriter(file, append === true);
+            writer.write(content);
+            writer.flush();
+            writer.close();
+            return true;
+        } catch(e) {
+            ModPE.log("File Write Error: " + e);
+            return false;
+        }
+    },
+    readText: function(filePath) {
+        try {
+            var file = new java.io.File(filePath);
+            if (!file.exists()) return null;
+            var reader = new java.io.BufferedReader(new java.io.FileReader(file));
+            var sb = new java.lang.StringBuilder();
+            var line;
+            while ((line = reader.readLine()) !== null) {
+                sb.append(line).append("\n");
+            }
+            reader.close();
+            return sb.toString();
+        } catch(e) {
+            ModPE.log("File Read Error: " + e);
+            return null;
+        }
+    },
+    exists: function(filePath) {
+        return new java.io.File(filePath).exists();
+    },
+    deleteFile: function(filePath) {
+        try {
+            var file = new java.io.File(filePath);
+            return file.exists() ? file["delete"]() : false;
+        } catch(e) {
+            ModPE.log("File Delete Error: " + e);
+            return false;
+        }
+    }
+};
+
+// أداة إرسال طلبات الشبكة وحلب البيانات عبر الانترنت (Java HTTP Client)
+var httpClient = {
+    getAsync: function(urlString, callback) {
+        new java.lang.Thread(new java.lang.Runnable({
+            run: function() {
+                try {
+                    var url = new java.net.URL(urlString);
+                    var conn = url.openConnection();
+                    conn.setRequestMethod("GET");
+                    conn.setConnectTimeout(5000);
+                    conn.setReadTimeout(5000);
+
+                    var inStream = conn.getInputStream();
+                    var reader = new java.io.BufferedReader(new java.io.InputStreamReader(inStream));
+                    var sb = new java.lang.StringBuilder();
+                    var line;
+                    while ((line = reader.readLine()) !== null) {
+                        sb.append(line).append("\n");
+                    }
+                    reader.close();
+
+                    if (typeof callback === "function") {
+                        callback(null, sb.toString());
+                    }
+                } catch(e) {
+                    if (typeof callback === "function") {
+                        callback(e.toString(), null);
+                    }
+                }
+            }
+        })).start();
+    },
+    postAsync: function(urlString, bodyData, callback) {
+        new java.lang.Thread(new java.lang.Runnable({
+            run: function() {
+                try {
+                    var url = new java.net.URL(urlString);
+                    var conn = url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setDoOutput(true);
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                    conn.setConnectTimeout(5000);
+                    conn.setReadTimeout(5000);
+
+                    var os = conn.getOutputStream();
+                    var writer = new java.io.BufferedWriter(new java.io.OutputStreamWriter(os, "UTF-8"));
+                    writer.write(bodyData);
+                    writer.flush();
+                    writer.close();
+                    os.close();
+
+                    var inStream = conn.getInputStream();
+                    var reader = new java.io.BufferedReader(new java.io.InputStreamReader(inStream));
+                    var sb = new java.lang.StringBuilder();
+                    var line;
+                    while ((line = reader.readLine()) !== null) {
+                        sb.append(line).append("\n");
+                    }
+                    reader.close();
+
+                    if (typeof callback === "function") {
+                        callback(null, sb.toString());
+                    }
+                } catch(e) {
+                    if (typeof callback === "function") {
+                        callback(e.toString(), null);
+                    }
+                }
+            }
+        })).start();
+    }
+};
