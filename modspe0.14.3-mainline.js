@@ -1,41 +1,62 @@
-// سكربت إضافة زجاج ملون بمعرفات مستقلة - ماينكرافت 0.14.3
-// المعرفات المستقلة المستخدمة: 211, 212, 213, 214, 215, 216, 217, 218
+/*
+ * اسم المود: Gravity & Tornado Wand
+ * الإصدار المستهدف: MCPE 0.14.3
+ * المعيار: MECANE
+ */
 
-// قائمة ألوان الزجاج مع المعرفات وشكل النسيج
-var GLASS_TYPES = [
-    { id: 211, name: "Red Glass", colorMeta: 14 },
-    { id: 212, name: "Blue Glass", colorMeta: 11 },
-    { id: 213, name: "Green Glass", colorMeta: 13 },
-    { id: 214, name: "Yellow Glass", colorMeta: 4 },
-    { id: 215, name: "Purple Glass", colorMeta: 10 },
-    { id: 216, name: "Orange Glass", colorMeta: 1 },
-    { id: 217, name: "Black Glass", colorMeta: 15 },
-    { id: 218, name: "White Glass", colorMeta: 0 }
-];
+// متغيرات حالة المود
+var isTornadoActive = false;
+var tornadoRadius = 8;
+var liftForce = 0.35;
 
-// تسجيل البلوكات وإعطائها خواص الزجاج الشفاف
-for (var i = 0; i < GLASS_TYPES.length; i++) {
-    var glass = GLASS_TYPES[i];
-    
-    // تعريف البلوك باستعمال نسج الألوان وطبقة الشفافية
-    Block.defineBlock(glass.id, glass.name, [["wool", glass.colorMeta]], 20, false, 0);
-    
-    // سرعة الكسر مثل الزجاج العادي
-    Block.setDestroyTime(glass.id, 0.3);
-    
-    // جعل البلوك ينفذ الضوء بالكامل
-    Block.setLightOpacity(glass.id, 0);
-    
-    // تفعيل طبقة الرندر الشفافة (RenderLayer 1)
-    Block.setRenderLayer(glass.id, 1);
+// الدالة الرئيسية المستدعات مع كل إطار زمن (Tick)
+function modTick() {
+    if (isTornadoActive) {
+        var playerX = Player.getX();
+        var playerY = Player.getY();
+        var playerZ = Player.getZ();
+
+        // جلب جميع الكيانات المجاورة
+        var entities = Entity.getAll();
+        for (var i = 0; i < entities.length; i++) {
+            var ent = entities[i];
+            
+            // استثناء اللاعب نفسه من التأثير
+            if (ent != Player.getEntity()) {
+                var entX = Entity.getX(ent);
+                var entY = Entity.getY(ent);
+                var entZ = Entity.getZ(ent);
+
+                // حساب المسافة بين الكيان واللاعب
+                var dx = entX - playerX;
+                var dz = entZ - playerZ;
+                var distance = Math.sqrt(dx * dx + dz * dz);
+
+                // تطبيق قوة الإعصار إذا كان الكيان ضمن النطاق
+                if (distance <= tornadoRadius && distance > 0.5) {
+                    var angle = Math.atan2(dz, dx) + 0.3; // زاوية الدوران الحلزوني
+                    var newVelX = -Math.sin(angle) * 0.5;
+                    var newVelZ = Math.cos(angle) * 0.5;
+
+                    // تطبيق المتجهات لرسم حركة الإعصار
+                    Entity.setVelX(ent, newVelX);
+                    Entity.setVelY(ent, liftForce);
+                    Entity.setVelZ(ent, newVelZ);
+                }
+            }
+        }
+    }
 }
 
-// رسالة عند استخدام أو وضع الزجاج الملون
-function useItem(x, y, z, itemid, blockid, side, itemdamage, blockdamage) {
-    for (var i = 0; i < GLASS_TYPES.length; i++) {
-        if (itemid == GLASS_TYPES[i].id) {
-            clientMessage("Placed " + GLASS_TYPES[i].name);
-            break;
+// استخدام عصا التحكم عند الضغط على الأرض
+function useItem(x, y, z, itemId, blockId, side) {
+    // باستخدام Stick (ID 280)
+    if (itemId == 280) {
+        isTornadoActive = !isTornadoActive;
+        if (isTornadoActive) {
+            clientMessage("[GravityMod] Tornado Field: ACTIVATED");
+        } else {
+            clientMessage("[GravityMod] Tornado Field: DEACTIVATED");
         }
     }
 }
