@@ -799,3 +799,17 @@ system.runInterval(function() {
         currentCombo = 0;
     }
 }, 5);
+
+// إضافة أمر للحصول على البيضة عبر الشات
+world.afterEvents.chatSend.subscribe(function(event) {
+    var message = event.message;
+    var player = event.sender;
+
+    if (message === "giveegg" || message === "/giveegg") {
+        var inventory = player.getComponent("minecraft:inventory");
+        if (inventory) {
+            inventory.container.addItem({ typeId: 500, amount: 1, data: 0 });
+            player.sendMessage("§a[PvP Dummy] Spawn egg added to your inventory!");
+        }
+    }
+});
