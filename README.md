@@ -26,13 +26,8 @@ Write chmod +x modspe0.14.3-projectupdate.sh && bash modspe0.14.3-projectupdate.
 
 Then Enjoy!
 
-# LICENSE
-
-GPL3
-
 # The Releases 
 [The Releases](https://github.com/BrCraft131313/ModsPE0.14.3/releases)
-# Index
 
 modspe0.14.3-devguide/easy.txt -> Dev Guide File
 
