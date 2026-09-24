@@ -1,5 +1,5 @@
 /*
- * Mod Name     : Herobrine Nightmare Experience Mod (Ultra Hard)
+ * Mod Name     : Herobrine Army & Horror Experience Mod
  * Target Engine: MCPE 0.14.3 (Native ModPE Script)
  * Standard    : MECANE (Messages English, Comments Arabic, No Emojis)
  */
@@ -12,7 +12,7 @@ var isHerobrineActive = false;
 var herobrineEntity = null;
 var clonesList = [];
 var tickCounter = 0;
-var eventInterval = 160; // حدث كل 8 ثواني تقريباً (أسرع وأكثر إخافة)
+var eventInterval = 160; // حدث كل 8 ثواني تقريباً
 
 // ==========================================
 // 2. معالجة أوامر الشات (/herobrine)
@@ -49,7 +49,7 @@ function chatHook(str) {
 }
 
 // ==========================================
-// 3. طقوس التوتم واستدعام مباشر
+// 3. طقوس التوتم واستدعاء مباشر
 // ==========================================
 
 function useItem(x, y, z, itemId, blockId, side, itemDamage, blockDamage) {
@@ -58,7 +58,6 @@ function useItem(x, y, z, itemId, blockId, side, itemDamage, blockDamage) {
             isHerobrineActive = true;
             Level.spawnMob(x + 0.5, y + 2, z + 0.5, 93); // Lightning Bolt
             
-            // ترسبن هيروبراين فوراً مع قفزة رعب
             jumpscareAttack();
             clientMessage("§4§l[Herobrine] YOU SHOULD NOT HAVE DONE THAT.");
         }
@@ -79,7 +78,6 @@ function modTick() {
         triggerRandomHorrorEvent();
     }
 
-    // توجيه هيروبراين والنسخ نحو اللاعب دائماً
     if (herobrineEntity !== null) {
         lookAtPlayer(herobrineEntity);
 
@@ -94,11 +92,11 @@ function modTick() {
         if (hx !== undefined) {
             var dist = Math.sqrt(Math.pow(px - hx, 2) + Math.pow(py - hy, 2) + Math.pow(pz - hz, 2));
 
-            // إذا اقترب جداً يضرب اللاعب ويصعقه ثم يختفي
             if (dist < 2.5) {
                 var player = Player.getEntity();
                 Entity.addEffect(player, 20, 100, 2, false, true); // Wither Effect
                 Level.spawnMob(px, py, pz, 93); // Lightning Bolt
+                Level.playSound(px, py, pz, "mob.ghast.scream", 1.0, 1.0);
                 vanishHerobrine();
             }
         } else {
@@ -106,7 +104,6 @@ function modTick() {
         }
     }
 
-    // تحديث اتجاه نظر النسخ
     for (var i = 0; i < clonesList.length; i++) {
         if (clonesList[i] !== null) {
             lookAtPlayer(clonesList[i]);
@@ -120,33 +117,34 @@ function modTick() {
 
 function triggerRandomHorrorEvent() {
     removeAllClones();
-    var rand = Math.floor(Math.random() * 6);
+    var rand = Math.floor(Math.random() * 8);
 
     if (rand === 0) {
-        // الحدث 1: هجوم القفزة والمركّب (Jumpscare) خلف ظهر اللاعب
         jumpscareAttack();
     } 
     else if (rand === 1) {
-        // الحدث 2: استدعاء دائرة من النسخ تحيط باللاعب (Circle of Clones)
         spawnCloneCircle();
     } 
     else if (rand === 2) {
-        // الحدث 3: إطفاء الشموع المحيطة باللاعب وتحويل المكان لظلام
         snuffNearbyTorches();
     } 
     else if (rand === 3) {
-        // الحدث 4: قذف اللاعب في الهواء (Telekinesis Attack)
         telekineticToss();
     } 
     else if (rand === 4) {
-        // الحدث 5: عمى وغثيان مع رسالة مرعبة
+        destroyNearbyBlocks();
+    }
+    else if (rand === 5) {
+        spawnMinionArmy(); // الحدث الجديد: استدعاء جيش الوحوش
+    }
+    else if (rand === 6) {
         var player = Player.getEntity();
         Entity.addEffect(player, 15, 120, 2, false, false); // Blindness
         Entity.addEffect(player, 9, 120, 1, false, false);  // Nausea
+        Level.playSound(Player.getX(), Player.getY(), Player.getZ(), "mob.ghast.charge", 1.0, 0.8);
         clientMessage("§4§lCAN YOU FEEL MY PRESENCE?");
     } 
-    else if (rand === 5) {
-        // الحدث 6: نيران وتحويل الجو لليل وصواعق متتالية
+    else if (rand === 7) {
         Level.setNightMode(true);
         var px = Math.floor(Player.getX());
         var py = Math.floor(Player.getY());
@@ -157,6 +155,7 @@ function triggerRandomHorrorEvent() {
         Level.setTile(px, py, pz + 1, 51);
         Level.setTile(px, py, pz - 1, 51);
         
+        Level.playSound(px, py, pz, "mob.ghast.scream", 1.0, 0.6);
         clientMessage("§c[Herobrine] THIS WORLD IS MINE.");
     }
 }
@@ -164,6 +163,32 @@ function triggerRandomHorrorEvent() {
 // ==========================================
 // 6. دوال المساعدة الميكانيكية
 // ==========================================
+
+function spawnMinionArmy() {
+    var px = Player.getX();
+    var py = Player.getY();
+    var pz = Player.getZ();
+    var count = 6;
+    var radius = 4;
+
+    for (var i = 0; i < count; i++) {
+        var angle = (i * (360 / count)) * (Math.PI / 180);
+        var mx = px + Math.sin(angle) * radius;
+        var mz = pz + Math.cos(angle) * radius;
+
+        // التبديل العشوائي بين الزومبي (ID 32) والسكلتون (ID 34)
+        var mobType = (i % 2 === 0) ? 32 : 34; 
+        var minion = Level.spawnMob(mx, py, mz, mobType, "");
+
+        if (minion !== null && minion !== undefined) {
+            Entity.setNameTag(minion, "§cHerobrine's Minion");
+            Entity.addEffect(minion, 1, 600, 1, false, false); // Speed
+        }
+    }
+
+    Level.playSound(px, py, pz, "mob.ghast.scream", 1.0, 0.8);
+    clientMessage("§4§l[Herobrine] RISE MY SERVANTS!");
+}
 
 function jumpscareAttack() {
     removeHerobrine();
@@ -175,18 +200,17 @@ function jumpscareAttack() {
     var yaw = Entity.getYaw(Player.getEntity());
     var rad = yaw * (Math.PI / 180);
 
-    // ظهور خلف اللاعب مباشرة على بعد 2 بلوكة
     var hx = px + Math.sin(rad) * 2;
     var hz = pz - Math.cos(rad) * 2;
 
     herobrineEntity = Level.spawnMob(hx, py, hz, 32, "");
     configureHerobrineEntity(herobrineEntity);
 
-    // شلل وعمى مؤقت للاعب
     var player = Player.getEntity();
-    Entity.addEffect(player, 2, 40, 255, false, false);  // Slowness (Freeze)
+    Entity.addEffect(player, 2, 40, 255, false, false);  // Slowness
     Entity.addEffect(player, 15, 40, 1, false, false);   // Blindness
-    Level.playSound(px, py, pz, "random.explode", 1.0, 0.5);
+    
+    Level.playSound(px, py, pz, "mob.ghast.scream", 1.0, 1.0);
 }
 
 function spawnCloneCircle() {
@@ -198,7 +222,6 @@ function spawnCloneCircle() {
     var pz = Player.getZ();
     var radius = 5;
 
-    // استدعاء 4 نسخ في 4 اتجاهات مختلفة تحيط باللاعب
     var angles = [0, 90, 180, 270];
     for (var i = 0; i < angles.length; i++) {
         var rad = angles[i] * (Math.PI / 180);
@@ -210,13 +233,37 @@ function spawnCloneCircle() {
         clonesList.push(clone);
     }
 
+    Level.playSound(px, py, pz, "mob.ghast.charge", 1.0, 0.7);
     clientMessage("§4§lLOOK AROUND YOU.");
+}
+
+function destroyNearbyBlocks() {
+    var px = Math.floor(Player.getX());
+    var py = Math.floor(Player.getY());
+    var pz = Math.floor(Player.getZ());
+    var radius = 3;
+
+    for (var x = px - radius; x <= px + radius; x++) {
+        for (var y = py; y <= py + 3; y++) {
+            for (var z = pz - radius; z <= pz + radius; z++) {
+                var tile = Level.getTile(x, y, z);
+                if (tile !== 0 && tile !== 7) {
+                    Level.setTile(x, y, z, 0);
+                    Level.addParticle(4, x + 0.5, y + 0.5, z + 0.5, 0, 0, 0, 1);
+                }
+            }
+        }
+    }
+    Level.playSound(px, py, pz, "random.explode", 1.0, 0.8);
+    Level.playSound(px, py, pz, "mob.ghast.scream", 1.0, 0.9);
+    clientMessage("§c[Herobrine] YOUR SHELTER WON'T SAVE YOU.");
 }
 
 function telekineticToss() {
     var player = Player.getEntity();
-    Entity.setVelY(player, 1.2); // رفع اللاعب للسماء
-    Level.spawnMob(Player.getX(), Player.getY(), Player.getZ(), 93); // صاعقة
+    Entity.setVelY(player, 1.2);
+    Level.spawnMob(Player.getX(), Player.getY(), Player.getZ(), 93);
+    Level.playSound(Player.getX(), Player.getY(), Player.getZ(), "mob.ghast.scream", 1.0, 0.5);
     clientMessage("§c[Herobrine] KNEEL BEFORE ME.");
 }
 
@@ -230,13 +277,14 @@ function snuffNearbyTorches() {
         for (var y = py - 2; y <= py + 3; y++) {
             for (var z = pz - radius; z <= pz + radius; z++) {
                 var tile = Level.getTile(x, y, z);
-                if (tile === 50) { // Torch
-                    Level.setTile(x, y, z, 0); // تدمير الشعلة
+                if (tile === 50) {
+                    Level.setTile(x, y, z, 0);
                     Level.addParticle(4, x + 0.5, y + 0.5, z + 0.5, 0, 0, 0, 1);
                 }
             }
         }
     }
+    Level.playSound(px, py, pz, "random.fizz", 1.0, 0.5);
     clientMessage("§0§l[Darkness Falls]");
 }
 
@@ -244,9 +292,7 @@ function configureHerobrineEntity(ent) {
     if (ent !== null && ent !== undefined) {
         Entity.setNameTag(ent, "§c§lHerobrine");
         Entity.setImmobile(ent, true);
-        for (var s = 0; s < 4; s++) {
-            Entity.setArmorItem(ent, s, 0, 0, 0);
-        }
+        Entity.setCarriedItem(ent, 0, 0, 0);
     }
 }
 
@@ -295,5 +341,5 @@ function removeAllClones() {
         }
     }
     clonesList = [];
-    }
-                                      
+            }
+        
