@@ -24,6 +24,28 @@ var DimensionId = {
     NORMAL: 0, NETHER: 1, OVERWORLD: 0
 };
 
+// خريطة تحويل أسماء الكيانات إلى معرّفات رقمية لـ ModPE 0.14.3
+var EntityTypeIdMap = {
+    "zombie": 32,
+    "minecraft:zombie": 32,
+    "creeper": 33,
+    "minecraft:creeper": 33,
+    "skeleton": 34,
+    "minecraft:skeleton": 34,
+    "spider": 35,
+    "minecraft:spider": 35,
+    "cow": 11,
+    "minecraft:cow": 11,
+    "pig": 12,
+    "minecraft:pig": 12,
+    "sheep": 13,
+    "minecraft:sheep": 13,
+    "chicken": 10,
+    "minecraft:chicken": 10,
+    "player": 63,
+    "human": 63
+};
+
 // ==========================================
 // 2. مصفوفات إدارة الأحداث والمؤقتات الداخلية
 // ==========================================
@@ -185,7 +207,6 @@ MinecraftEntity.prototype.ride = function(targetEntity) {
     Entity.rideAnimal(this.id, targetEntity.id || targetEntity);
 };
 
-// محاكاة المكونات الداخلية للكيان (Health, Hunger, Inventory)
 MinecraftEntity.prototype.getComponent = function(componentId) {
     var self = this;
     if (componentId === "minecraft:health") {
@@ -199,7 +220,6 @@ MinecraftEntity.prototype.getComponent = function(componentId) {
     return null;
 };
 
-// محاكاة كائن اللاعب (Player Wrapper)
 function MinecraftPlayer(entityId) {
     MinecraftEntity.call(this, entityId);
 }
@@ -326,7 +346,15 @@ MinecraftDimension.prototype.setBlockType = function(location, blockId, data) {
 };
 
 MinecraftDimension.prototype.spawnEntity = function(typeId, location) {
-    var ent = Level.spawnMob(location.x, location.y, location.z, typeId, "");
+    var numericTypeId = typeId;
+    if (typeof typeId === "string") {
+        var lower = typeId.toLowerCase();
+        numericTypeId = EntityTypeIdMap[lower] !== undefined ? EntityTypeIdMap[lower] : parseInt(typeId, 10);
+        if (isNaN(numericTypeId)) {
+            numericTypeId = 32; // القيمة الافتراضية: زومبي
+        }
+    }
+    var ent = Level.spawnMob(location.x, location.y, location.z, numericTypeId, "");
     return new MinecraftEntity(ent);
 };
 
@@ -520,13 +548,11 @@ var system = {
 function modTick() {
     _mc_current_tick++;
 
-    // 1. معالجة مهام الدورة التكرارية القادمة (system.run)
     while (_mc_nextTickQueue.length > 0) {
         var fn = _mc_nextTickQueue.shift();
         try { fn(); } catch(e) { print("Error in system.run: " + e); }
     }
 
-    // 2. معالجة الفواصل الزمنية (system.runInterval)
     for (var i = 0; i < _mc_intervals.length; i++) {
         var task = _mc_intervals[i];
         task.current++;
@@ -536,7 +562,6 @@ function modTick() {
         }
     }
 
-    // 3. معالجة المؤقتات المحددة بوقت (system.runTimeout)
     for (var j = _mc_timeouts.length - 1; j >= 0; j--) {
         var timer = _mc_timeouts[j];
         timer.current++;
@@ -686,7 +711,6 @@ function redstoneUpdateHook(x, y, z, newCurrent, isWorldBuilder, blockId, blockD
 // 1. تسجيل عنصر استدعاء البوت في المحرك
 // ==========================================
 
-// تسجيل بيضة/أداة استدعاء الدمية في نظام اللعبة الأصلي
 ModPE.setItem(500, "spawn_egg", 0, "Spawn PvP Dummy");
 
 // ==========================================
@@ -703,13 +727,11 @@ var lastHitTick = 0;
 // 3. حدث استدعاء دمية التدريب
 // ==========================================
 
-// الاستماع لحدث استخدام عنصر استدعاء البوت على بلوكة
 world.afterEvents.playerInteractWithBlock.subscribe(function(event) {
     var player = event.player;
     var item = event.itemStack;
     var block = event.block;
 
-    // التحقق من أن العنصر المستخدم هو أداة الاستدعاء (ID: 500)
     if (item.typeId === 500) {
         var spawnLocation = {
             x: block.x + 0.5,
@@ -717,20 +739,16 @@ world.afterEvents.playerInteractWithBlock.subscribe(function(event) {
             z: block.z + 0.5
         };
 
-        // ترسيب كائن الزومبي ليكون بمثابة دمية التدريب
         var dimension = world.getDimension("overworld");
         var dummy = dimension.spawnEntity("zombie", spawnLocation);
 
-        // تخصيص اسم الدمية وتثبيتها لمنع حركتها
         dummy.nameTag = DUMMY_NAME;
         dummy.setImmobile(true);
 
-        // حفظ معرف الدمية وتصفير العدادات
         dummyEntityId = dummy.id;
         currentCombo = 0;
         hitTimestamps = [];
 
-        // إرسال رسالة تأكيد للاعب
         player.sendMessage("§a[PvP Dummy] Training dummy spawned successfully.");
     }
 });
@@ -739,18 +757,15 @@ world.afterEvents.playerInteractWithBlock.subscribe(function(event) {
 // 4. حدث تلقي الضرر وحساب الـ CPS والـ Combo
 // ==========================================
 
-// الاستماع لحدث الضرب لحساب الإحصائيات وإعادة ملء الدم فوراً
 world.afterEvents.entityHurt.subscribe(function(event) {
     var victim = event.hurtEntity;
     var attacker = event.damageSource.damagingEntity;
     var damage = event.damage;
 
-    // التأكد من أن الكيان المضروب هو دمية التدريب
     if (victim.nameTag === DUMMY_NAME || (dummyEntityId !== null && victim.id === dummyEntityId)) {
         var now = Date.now();
         hitTimestamps.push(now);
 
-        // تنظيف الضربات القديمة لحساب الـ CPS خلال آخر 1000 مللي ثانية (ثانية واحدة)
         while (hitTimestamps.length > 0 && hitTimestamps[0] < now - 1000) {
             hitTimestamps.shift();
         }
@@ -759,13 +774,11 @@ world.afterEvents.entityHurt.subscribe(function(event) {
         currentCombo++;
         lastHitTick = system.currentTick;
 
-        // إعادة صحة الدمية للحد الأقصى فوراً لمنع موتها
         var healthComponent = victim.getComponent("minecraft:health");
         if (healthComponent) {
             healthComponent.setCurrentValue(healthComponent.effectiveMax);
         }
 
-        // عرض الإحصائيات للاعب المهاجم في الشات والـ ActionBar
         if (attacker && attacker.sendMessage) {
             var statsMessage = "§a[PvP Dummy] §fCombo: §e" + currentCombo + " §f| CPS: §b" + cps + " §f| Damage: §c" + damage.toFixed(1);
             attacker.sendMessage(statsMessage);
@@ -781,16 +794,13 @@ world.afterEvents.entityHurt.subscribe(function(event) {
 // 5. المؤقت الدوري لتصفير الـ Combo
 // ==========================================
 
-// فحص دوري كل 5 تيكات لتصفير العدادات عند توقف الضرب
 system.runInterval(function() {
     var now = Date.now();
 
-    // إزالة سجلات الضربات التي تجاوزت ثانية واحدة
     while (hitTimestamps.length > 0 && hitTimestamps[0] < now - 1000) {
         hitTimestamps.shift();
     }
 
-    // إعادة تعيين الـ Combo إذا مرت أكثر من ثانيتين (40 تيك) بدون أي ضربة جديدة
     if (currentCombo > 0 && (system.currentTick - lastHitTick > 40)) {
         var players = world.getAllPlayers();
         if (players.length > 0) {
