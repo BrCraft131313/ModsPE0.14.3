@@ -60,11 +60,15 @@ function MinecraftBlock(x, y, z) {
 }
 
 Object.defineProperty(MinecraftBlock.prototype, "typeId", {
-    get: function() { return Level.getTile(this.x, this.y, this.z); }
+    get: function() { return Level.getTile(this.x, this.y, this.z); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftBlock.prototype, "permutation", {
-    get: function() { return { data: Level.getData(this.x, this.y, this.z) }; }
+    get: function() { return { data: Level.getData(this.x, this.y, this.z) }; },
+    configurable: true,
+    enumerable: true
 });
 
 MinecraftBlock.prototype.setType = function(blockId, data) {
@@ -96,7 +100,9 @@ function MinecraftEntity(entityId) {
 }
 
 Object.defineProperty(MinecraftEntity.prototype, "typeId", {
-    get: function() { return Entity.getEntityTypeId(this.id); }
+    get: function() { return Entity.getEntityTypeId(this.id); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftEntity.prototype, "location", {
@@ -106,7 +112,9 @@ Object.defineProperty(MinecraftEntity.prototype, "location", {
             y: Entity.getY(this.id),
             z: Entity.getZ(this.id)
         };
-    }
+    },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftEntity.prototype, "velocity", {
@@ -116,26 +124,34 @@ Object.defineProperty(MinecraftEntity.prototype, "velocity", {
             y: Entity.getVelY(this.id),
             z: Entity.getVelZ(this.id)
         };
-    }
+    },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftEntity.prototype, "nameTag", {
     get: function() { return Entity.getNameTag(this.id); },
-    set: function(name) { Entity.setNameTag(this.id, name); }
+    set: function(name) { Entity.setNameTag(this.id, name); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftEntity.prototype, "isSneaking", {
-    get: function() { return Entity.isSneaking(this.id); },
-    set: function(value) { Entity.setSneaking(this.id, value); }
+    get: function() { return typeof Entity.isSneaking === "function" ? Entity.isSneaking(this.id) : false; },
+    set: function(value) { if (typeof Entity.setSneaking === "function") Entity.setSneaking(this.id, value); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftEntity.prototype, "target", {
     get: function() { return new MinecraftEntity(Entity.getTarget(this.id)); },
-    set: function(targetEntity) { Entity.setTarget(this.id, targetEntity.id || targetEntity); }
+    set: function(targetEntity) { Entity.setTarget(this.id, (targetEntity && targetEntity.id !== undefined) ? targetEntity.id : targetEntity); },
+    configurable: true,
+    enumerable: true
 });
 
 MinecraftEntity.prototype.teleport = function(x, y, z) {
-    if (typeof x === "object") {
+    if (typeof x === "object" && x !== null) {
         Entity.setPosition(this.id, x.x, x.y, x.z);
     } else {
         Entity.setPosition(this.id, x, y, z);
@@ -143,9 +159,9 @@ MinecraftEntity.prototype.teleport = function(x, y, z) {
 };
 
 MinecraftEntity.prototype.applyImpulse = function(vector) {
-    if (vector.x !== undefined) Entity.setVelX(this.id, vector.x);
-    if (vector.y !== undefined) Entity.setVelY(this.id, vector.y);
-    if (vector.z !== undefined) Entity.setVelZ(this.id, vector.z);
+    if (vector && vector.x !== undefined) Entity.setVelX(this.id, vector.x);
+    if (vector && vector.y !== undefined) Entity.setVelY(this.id, vector.y);
+    if (vector && vector.z !== undefined) Entity.setVelZ(this.id, vector.z);
 };
 
 MinecraftEntity.prototype.setRotation = function(pitch, yaw) {
@@ -174,7 +190,9 @@ MinecraftEntity.prototype.setOnFire = function(seconds) {
 };
 
 MinecraftEntity.prototype.setImmobile = function(value) {
-    Entity.setImmobile(this.id, value);
+    if (typeof Entity.setImmobile === "function") {
+        Entity.setImmobile(this.id, value);
+    }
 };
 
 MinecraftEntity.prototype.remove = function() {
@@ -182,19 +200,28 @@ MinecraftEntity.prototype.remove = function() {
 };
 
 MinecraftEntity.prototype.ride = function(targetEntity) {
-    Entity.rideAnimal(this.id, targetEntity.id || targetEntity);
+    var targetId = (targetEntity && targetEntity.id !== undefined) ? targetEntity.id : targetEntity;
+    Entity.rideAnimal(this.id, targetId);
 };
 
 // محاكاة المكونات الداخلية للكيان (Health, Hunger, Inventory)
 MinecraftEntity.prototype.getComponent = function(componentId) {
     var self = this;
     if (componentId === "minecraft:health") {
-        return {
-            get currentValue() { return Entity.getHealth(self.id); },
-            get effectiveMax() { return Entity.getMaxHealth(self.id); },
-            setCurrentValue: function(val) { Entity.setHealth(self.id, val); },
-            setMaxValue: function(val) { Entity.setMaxHealth(self.id, val); }
-        };
+        var comp = {};
+        Object.defineProperty(comp, "currentValue", {
+            get: function() { return Entity.getHealth(self.id); },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(comp, "effectiveMax", {
+            get: function() { return Entity.getMaxHealth(self.id); },
+            configurable: true,
+            enumerable: true
+        });
+        comp.setCurrentValue = function(val) { Entity.setHealth(self.id, val); };
+        comp.setMaxValue = function(val) { Entity.setMaxHealth(self.id, val); };
+        return comp;
     }
     return null;
 };
@@ -204,38 +231,53 @@ function MinecraftPlayer(entityId) {
     MinecraftEntity.call(this, entityId);
 }
 MinecraftPlayer.prototype = Object.create(MinecraftEntity.prototype);
+MinecraftPlayer.prototype.constructor = MinecraftPlayer;
 
 Object.defineProperty(MinecraftPlayer.prototype, "name", {
-    get: function() { return Player.getName(this.id); }
+    get: function() { return typeof Player.getName === "function" ? Player.getName(this.id) : "Player"; },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftPlayer.prototype, "level", {
-    get: function() { return Player.getLevel(); },
-    set: function(lvl) { Player.setLevel(lvl); }
+    get: function() { return typeof Player.getLevel === "function" ? Player.getLevel() : 0; },
+    set: function(lvl) { if (typeof Player.setLevel === "function") Player.setLevel(lvl); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftPlayer.prototype, "xpEarnedAtCurrentLevel", {
-    get: function() { return Player.getExp(); },
-    set: function(exp) { Player.setExp(exp); }
+    get: function() { return typeof Player.getExp === "function" ? Player.getExp() : 0; },
+    set: function(exp) { if (typeof Player.setExp === "function") Player.setExp(exp); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftPlayer.prototype, "isFlying", {
-    get: function() { return Player.isFlying(); },
-    set: function(value) { Player.setFlying(value); }
+    get: function() { return typeof Player.isFlying === "function" ? Player.isFlying() : false; },
+    set: function(value) { if (typeof Player.setFlying === "function") Player.setFlying(value); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftPlayer.prototype, "canFly", {
-    get: function() { return Player.canFly(); },
-    set: function(value) { Player.setCanFly(value); }
+    get: function() { return typeof Player.canFly === "function" ? Player.canFly() : false; },
+    set: function(value) { if (typeof Player.setCanFly === "function") Player.setCanFly(value); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftPlayer.prototype, "selectedSlotIndex", {
-    get: function() { return Player.getSelectedSlotId(); },
-    set: function(slot) { Player.setSelectedSlotId(slot); }
+    get: function() { return typeof Player.getSelectedSlotId === "function" ? Player.getSelectedSlotId() : 0; },
+    set: function(slot) { if (typeof Player.setSelectedSlotId === "function") Player.setSelectedSlotId(slot); },
+    configurable: true,
+    enumerable: true
 });
 
 Object.defineProperty(MinecraftPlayer.prototype, "score", {
-    get: function() { return Player.getScore(); }
+    get: function() { return typeof Player.getScore === "function" ? Player.getScore() : 0; },
+    configurable: true,
+    enumerable: true
 });
 
 MinecraftPlayer.prototype.sendMessage = function(message) {
@@ -243,7 +285,7 @@ MinecraftPlayer.prototype.sendMessage = function(message) {
 };
 
 MinecraftPlayer.prototype.addExperience = function(amount) {
-    Player.addExp(amount);
+    if (typeof Player.addExp === "function") Player.addExp(amount);
 };
 
 MinecraftPlayer.prototype.getCarriedItem = function() {
@@ -263,26 +305,40 @@ MinecraftPlayer.prototype.getPointedBlock = function() {
 
 MinecraftPlayer.prototype.getPointedEntity = function() {
     var ent = Player.getPointedEntity();
-    return ent !== -1 ? new MinecraftEntity(ent) : null;
+    return (ent !== -1 && ent !== null && ent !== undefined) ? new MinecraftEntity(ent) : null;
 };
 
 MinecraftPlayer.prototype.onScreenDisplay = {
     setActionBar: function(text) {
-        ModPE.showTipMessage(text);
+        if (typeof ModPE.showTipMessage === "function") {
+            ModPE.showTipMessage(text);
+        }
     }
 };
 
 MinecraftPlayer.prototype.getComponent = function(componentId) {
     var self = this;
     if (componentId === "minecraft:hunger") {
-        return {
-            get currentValue() { return Player.getHunger(); },
-            set currentValue(val) { Player.setHunger(val); },
-            get saturation() { return Player.getSaturation(); },
-            set saturation(val) { Player.setSaturation(val); },
-            get exhaustion() { return Player.getExhaustion(); },
-            set exhaustion(val) { Player.setExhaustion(val); }
-        };
+        var hungerComp = {};
+        Object.defineProperty(hungerComp, "currentValue", {
+            get: function() { return typeof Player.getHunger === "function" ? Player.getHunger() : 20; },
+            set: function(val) { if (typeof Player.setHunger === "function") Player.setHunger(val); },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(hungerComp, "saturation", {
+            get: function() { return typeof Player.getSaturation === "function" ? Player.getSaturation() : 5; },
+            set: function(val) { if (typeof Player.setSaturation === "function") Player.setSaturation(val); },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(hungerComp, "exhaustion", {
+            get: function() { return typeof Player.getExhaustion === "function" ? Player.getExhaustion() : 0; },
+            set: function(val) { if (typeof Player.setExhaustion === "function") Player.setExhaustion(val); },
+            configurable: true,
+            enumerable: true
+        });
+        return hungerComp;
     }
     if (componentId === "minecraft:inventory") {
         return {
@@ -370,7 +426,6 @@ MinecraftDimension.prototype.getEntities = function() {
 // ==========================================
 
 var world = {
-    name: Level.getWorldName(),
     getDimension: function(dimensionId) {
         return new MinecraftDimension(dimensionId);
     },
@@ -454,14 +509,17 @@ var world = {
     }
 };
 
+Object.defineProperty(world, "name", {
+    get: function() { return Level.getWorldName(); },
+    configurable: true,
+    enumerable: true
+});
+
 // ==========================================
 // 7. تعريف كائن system
 // ==========================================
 
 var system = {
-    get currentTick() { return _mc_current_tick; },
-    get minecraftVersion() { return ModPE.getMinecraftVersion(); },
-    
     run: function(callback) {
         _mc_nextTickQueue.push(callback);
     },
@@ -486,13 +544,13 @@ var system = {
         return id;
     },
     clearRun: function(runId) {
-        for (var i = 0; i < _mc_intervals.length; i++) {
+        for (var i = _mc_intervals.length - 1; i >= 0; i--) {
             if (_mc_intervals[i].id === runId) {
                 _mc_intervals.splice(i, 1);
                 return;
             }
         }
-        for (var j = 0; j < _mc_timeouts.length; j++) {
+        for (var j = _mc_timeouts.length - 1; j >= 0; j--) {
             if (_mc_timeouts[j].id === runId) {
                 _mc_timeouts.splice(j, 1);
                 return;
@@ -513,6 +571,18 @@ var system = {
     }
 };
 
+Object.defineProperty(system, "currentTick", {
+    get: function() { return _mc_current_tick; },
+    configurable: true,
+    enumerable: true
+});
+
+Object.defineProperty(system, "minecraftVersion", {
+    get: function() { return ModPE.getMinecraftVersion(); },
+    configurable: true,
+    enumerable: true
+});
+
 // ==========================================
 // 8. ربط أحداث ModPE الأصلية بالـ Wrapper
 // ==========================================
@@ -527,8 +597,9 @@ function modTick() {
     }
 
     // 2. معالجة الفواصل الزمنية (system.runInterval)
-    for (var i = 0; i < _mc_intervals.length; i++) {
-        var task = _mc_intervals[i];
+    var intervalsCopy = _mc_intervals.slice(0);
+    for (var i = 0; i < intervalsCopy.length; i++) {
+        var task = intervalsCopy[i];
         task.current++;
         if (task.current >= task.interval) {
             task.current = 0;
@@ -541,8 +612,9 @@ function modTick() {
         var timer = _mc_timeouts[j];
         timer.current++;
         if (timer.current >= timer.delay) {
-            try { timer.callback(); } catch(e) { print("Error in runTimeout: " + e); }
+            var callbackToRun = timer.callback;
             _mc_timeouts.splice(j, 1);
+            try { callbackToRun(); } catch(e) { print("Error in runTimeout: " + e); }
         }
     }
 }
