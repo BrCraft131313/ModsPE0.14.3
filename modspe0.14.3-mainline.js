@@ -1,238 +1,299 @@
 /*
- * Mod Name     : Custom Pi Physics, Gravity, Jump, Speed & FOV
+ * Mod Name     : Herobrine Nightmare Experience Mod (Ultra Hard)
  * Target Engine: MCPE 0.14.3 (Native ModPE Script)
  * Standard    : MECANE (Messages English, Comments Arabic, No Emojis)
  */
 
 // ==========================================
-// 1. المتغيرات وإعدادات الباي
+// 1. المتغيرات العامة
 // ==========================================
 
-var ORIGINAL_PI = Math.PI; // 3.141592653589793
-var customPI = Math.PI;
-
-var showAura = true;
-var auraRadius = 3;
-
-// مصفوفة تتبع المقذوفات النشطة
-var activeProjectiles = [];
-var PROJECTILE_TYPES = [80, 81, 82, 85, 86]; // Arrow, Snowball, Egg, Fireball, Splash Potion
-
-var lastYVel = 0;
+var isHerobrineActive = false;
+var herobrineEntity = null;
+var clonesList = [];
+var tickCounter = 0;
+var eventInterval = 160; // حدث كل 8 ثواني تقريباً (أسرع وأكثر إخافة)
 
 // ==========================================
-// 2. التقاط الكيانات الملقاة (entityAddedHook)
-// ==========================================
-
-function entityAddedHook(entity) {
-    var typeId = Entity.getEntityTypeId(entity);
-    for (var i = 0; i < PROJECTILE_TYPES.length; i++) {
-        if (typeId === PROJECTILE_TYPES[i]) {
-            activeProjectiles.push(entity);
-            break;
-        }
-    }
-}
-
-// ==========================================
-// 3. معالجة أوامر الشات (/pi)
+// 2. معالجة أوامر الشات (/herobrine)
 // ==========================================
 
 function chatHook(str) {
     var args = str.trim().toLowerCase().split(" ");
     var cmd = args[0];
 
-    if (cmd === "pi" || cmd === "/pi") {
-
+    if (cmd === "herobrine" || cmd === "/herobrine") {
         if (args.length < 2) {
-            clientMessage("§e[Pi Mod] Usage: /pi <number | reset | circle | aura>");
-            clientMessage("§e[Pi Mod] Current Pi: §b" + customPI + " §7(Original: " + ORIGINAL_PI.toFixed(4) + ")");
+            clientMessage("§e[Herobrine Mod] Usage: /herobrine <start | stop | spawn>");
             return;
         }
 
         var subCmd = args[1];
 
-        if (subCmd === "reset") {
-            customPI = ORIGINAL_PI;
-            updatePlayerEffects();
-            clientMessage("§a[Pi Mod] Pi reset to original value (" + ORIGINAL_PI.toFixed(5) + ").");
-            return;
+        if (subCmd === "start") {
+            isHerobrineActive = true;
+            clientMessage("§c[Herobrine] YOUR NIGHTMARE BEGINS NOW...");
+        } 
+        else if (subCmd === "stop") {
+            isHerobrineActive = false;
+            removeHerobrine();
+            removeAllClones();
+            clientMessage("§a[Herobrine] The nightmare has ended.");
+        } 
+        else if (subCmd === "spawn") {
+            isHerobrineActive = true;
+            jumpscareAttack();
+            clientMessage("§4§l[Herobrine] BEHIND YOU.");
         }
-
-        if (subCmd === "aura") {
-            showAura = !showAura;
-            clientMessage("§a[Pi Mod] Visual aura toggled: " + (showAura ? "ON" : "OFF"));
-            return;
-        }
-
-        if (subCmd === "circle") {
-            buildDistortedCircle();
-            return;
-        }
-
-        var newVal = parseFloat(subCmd);
-        if (isNaN(newVal) || newVal <= 0) {
-            clientMessage("§c[Pi Mod] Invalid number. Please enter a positive value.");
-            return;
-        }
-
-        customPI = newVal;
-        updatePlayerEffects();
-        clientMessage("§a[Pi Mod] Pi value updated to: §e" + customPI);
-        clientMessage("§7[Pi Mod] Gravity, jump height, speed, and FOV recalculated!");
     }
 }
 
 // ==========================================
-// 4. التكرار الدوري (modTick)
+// 3. طقوس التوتم واستدعام مباشر
+// ==========================================
+
+function useItem(x, y, z, itemId, blockId, side, itemDamage, blockDamage) {
+    if (itemId === 259 && blockId === 87) {
+        if (Level.getTile(x, y - 1, z) === 41) {
+            isHerobrineActive = true;
+            Level.spawnMob(x + 0.5, y + 2, z + 0.5, 93); // Lightning Bolt
+            
+            // ترسبن هيروبراين فوراً مع قفزة رعب
+            jumpscareAttack();
+            clientMessage("§4§l[Herobrine] YOU SHOULD NOT HAVE DONE THAT.");
+        }
+    }
+}
+
+// ==========================================
+// 4. التكرار الدوري والتحديث المستمر
 // ==========================================
 
 function modTick() {
-    if (showAura) {
-        renderAura();
+    if (!isHerobrineActive) return;
+
+    tickCounter++;
+
+    if (tickCounter >= eventInterval) {
+        tickCounter = 0;
+        triggerRandomHorrorEvent();
     }
-    
-    updateProjectilePhysics();
-    applyCustomGravity();
 
-    if (Math.abs(customPI - ORIGINAL_PI) > 0.01) {
-        updatePlayerEffects();
-    }
-}
+    // توجيه هيروبراين والنسخ نحو اللاعب دائماً
+    if (herobrineEntity !== null) {
+        lookAtPlayer(herobrineEntity);
 
-// ==========================================
-// 5. تأثير Pi على السرعة، القفز، و FOV
-// ==========================================
+        var px = Player.getX();
+        var py = Player.getY();
+        var pz = Player.getZ();
 
-function updatePlayerEffects() {
-    var player = Player.getEntity();
-    if (player === null) return;
+        var hx = Entity.getX(herobrineEntity);
+        var hy = Entity.getY(herobrineEntity);
+        var hz = Entity.getZ(herobrineEntity);
 
-    // تنظيف التأثيرات السابقة
-    Entity.removeEffect(player, 1); // Speed
-    Entity.removeEffect(player, 2); // Slowness
-    Entity.removeEffect(player, 8); // Jump Boost
+        if (hx !== undefined) {
+            var dist = Math.sqrt(Math.pow(px - hx, 2) + Math.pow(py - hy, 2) + Math.pow(pz - hz, 2));
 
-    var ratio = customPI / ORIGINAL_PI;
-
-    // زيادة Pi: زيادة السرعة، توسيع FOV، وقفزة أعلى
-    if (ratio > 1.05) {
-        var speedAmp = Math.min(15, Math.floor((ratio - 1.0) * 3));
-        var jumpAmp = Math.min(10, Math.floor((ratio - 1.0) * 2.5));
-
-        Entity.addEffect(player, 1, 40, speedAmp, false, false);
-        Entity.addEffect(player, 8, 40, jumpAmp, false, false);
-    } 
-    // نقصان Pi: بطء الحركة، تضييق FOV، وقفزة ثقيلة
-    else if (ratio < 0.95) {
-        var slowAmp = Math.min(10, Math.floor((1.0 - ratio) * 4));
-        Entity.addEffect(player, 2, 40, slowAmp, false, false);
-    }
-}
-
-// ==========================================
-// 6. تعديل ديناميكية الجاذبية أثناء الطيران/السقوط
-// ==========================================
-
-function applyCustomGravity() {
-    var player = Player.getEntity();
-    if (player === null) return;
-
-    var ratio = customPI / ORIGINAL_PI;
-    if (Math.abs(ratio - 1.0) < 0.02) return;
-
-    var vy = Entity.getVelY(player);
-
-    // تعديل الجاذبية أثناء السقوط
-    if (vy < -0.05) {
-        // قيمة Pi أكبر = جاذبية أبطأ (سقوط سلس)
-        // قيمة Pi أصغر = جاذبية أشد (سقوط سريع)
-        var newVy = vy * (1.0 / Math.sqrt(ratio));
-        Entity.setVelY(player, Math.max(-1.5, newVy));
-    }
-}
-
-// ==========================================
-// 7. فيزياء المقذوفات وانحراف المتجهات
-// ==========================================
-
-function updateProjectilePhysics() {
-    var piRatio = customPI / ORIGINAL_PI;
-    var deviationFactor = (piRatio - 1.0);
-
-    if (Math.abs(deviationFactor) < 0.001) return;
-
-    for (var i = activeProjectiles.length - 1; i >= 0; i--) {
-        var ent = activeProjectiles[i];
-
-        if (Entity.getX(ent) === undefined || Entity.getHealth(ent) <= 0) {
-            activeProjectiles.splice(i, 1);
-            continue;
+            // إذا اقترب جداً يضرب اللاعب ويصعقه ثم يختفي
+            if (dist < 2.5) {
+                var player = Player.getEntity();
+                Entity.addEffect(player, 20, 100, 2, false, true); // Wither Effect
+                Level.spawnMob(px, py, pz, 93); // Lightning Bolt
+                vanishHerobrine();
+            }
+        } else {
+            herobrineEntity = null;
         }
+    }
 
-        var vx = Entity.getVelX(ent);
-        var vy = Entity.getVelY(ent);
-        var vz = Entity.getVelZ(ent);
-
-        var angleShift = 0.08 * deviationFactor;
-
-        var newVx = vx * Math.cos(angleShift) - vz * Math.sin(angleShift);
-        var newVz = vx * Math.sin(angleShift) + vz * Math.cos(angleShift);
-        var newVy = vy + (0.015 * deviationFactor);
-
-        Entity.setVelX(ent, newVx);
-        Entity.setVelY(ent, newVy);
-        Entity.setVelZ(ent, newVz);
+    // تحديث اتجاه نظر النسخ
+    for (var i = 0; i < clonesList.length; i++) {
+        if (clonesList[i] !== null) {
+            lookAtPlayer(clonesList[i]);
+        }
     }
 }
 
 // ==========================================
-// 8. دوال الهالة والبناء الهندسي
+// 5. أحداث الرعب المتقدمة
 // ==========================================
 
-function renderAura() {
+function triggerRandomHorrorEvent() {
+    removeAllClones();
+    var rand = Math.floor(Math.random() * 6);
+
+    if (rand === 0) {
+        // الحدث 1: هجوم القفزة والمركّب (Jumpscare) خلف ظهر اللاعب
+        jumpscareAttack();
+    } 
+    else if (rand === 1) {
+        // الحدث 2: استدعاء دائرة من النسخ تحيط باللاعب (Circle of Clones)
+        spawnCloneCircle();
+    } 
+    else if (rand === 2) {
+        // الحدث 3: إطفاء الشموع المحيطة باللاعب وتحويل المكان لظلام
+        snuffNearbyTorches();
+    } 
+    else if (rand === 3) {
+        // الحدث 4: قذف اللاعب في الهواء (Telekinesis Attack)
+        telekineticToss();
+    } 
+    else if (rand === 4) {
+        // الحدث 5: عمى وغثيان مع رسالة مرعبة
+        var player = Player.getEntity();
+        Entity.addEffect(player, 15, 120, 2, false, false); // Blindness
+        Entity.addEffect(player, 9, 120, 1, false, false);  // Nausea
+        clientMessage("§4§lCAN YOU FEEL MY PRESENCE?");
+    } 
+    else if (rand === 5) {
+        // الحدث 6: نيران وتحويل الجو لليل وصواعق متتالية
+        Level.setNightMode(true);
+        var px = Math.floor(Player.getX());
+        var py = Math.floor(Player.getY());
+        var pz = Math.floor(Player.getZ());
+        
+        Level.setTile(px + 1, py, pz, 51);
+        Level.setTile(px - 1, py, pz, 51);
+        Level.setTile(px, py, pz + 1, 51);
+        Level.setTile(px, py, pz - 1, 51);
+        
+        clientMessage("§c[Herobrine] THIS WORLD IS MINE.");
+    }
+}
+
+// ==========================================
+// 6. دوال المساعدة الميكانيكية
+// ==========================================
+
+function jumpscareAttack() {
+    removeHerobrine();
+
     var px = Player.getX();
-    var py = Player.getY() + 0.2;
+    var py = Player.getY();
     var pz = Player.getZ();
 
-    var steps = 30;
-    var maxAngle = 2 * customPI;
+    var yaw = Entity.getYaw(Player.getEntity());
+    var rad = yaw * (Math.PI / 180);
 
-    for (var i = 0; i < steps; i++) {
-        var angle = (i / steps) * maxAngle;
-        var x = px + auraRadius * customMathCos(angle);
-        var z = pz + auraRadius * customMathSin(angle);
+    // ظهور خلف اللاعب مباشرة على بعد 2 بلوكة
+    var hx = px + Math.sin(rad) * 2;
+    var hz = pz - Math.cos(rad) * 2;
 
-        Level.addParticle(14, x, py, z, 0, 0, 0, 1);
-    }
+    herobrineEntity = Level.spawnMob(hx, py, hz, 32, "");
+    configureHerobrineEntity(herobrineEntity);
+
+    // شلل وعمى مؤقت للاعب
+    var player = Player.getEntity();
+    Entity.addEffect(player, 2, 40, 255, false, false);  // Slowness (Freeze)
+    Entity.addEffect(player, 15, 40, 1, false, false);   // Blindness
+    Level.playSound(px, py, pz, "random.explode", 1.0, 0.5);
 }
 
-function buildDistortedCircle() {
+function spawnCloneCircle() {
+    removeHerobrine();
+    removeAllClones();
+
+    var px = Player.getX();
+    var py = Player.getY();
+    var pz = Player.getZ();
+    var radius = 5;
+
+    // استدعاء 4 نسخ في 4 اتجاهات مختلفة تحيط باللاعب
+    var angles = [0, 90, 180, 270];
+    for (var i = 0; i < angles.length; i++) {
+        var rad = angles[i] * (Math.PI / 180);
+        var cx = px + Math.sin(rad) * radius;
+        var cz = pz + Math.cos(rad) * radius;
+
+        var clone = Level.spawnMob(cx, py, cz, 32, "");
+        configureHerobrineEntity(clone);
+        clonesList.push(clone);
+    }
+
+    clientMessage("§4§lLOOK AROUND YOU.");
+}
+
+function telekineticToss() {
+    var player = Player.getEntity();
+    Entity.setVelY(player, 1.2); // رفع اللاعب للسماء
+    Level.spawnMob(Player.getX(), Player.getY(), Player.getZ(), 93); // صاعقة
+    clientMessage("§c[Herobrine] KNEEL BEFORE ME.");
+}
+
+function snuffNearbyTorches() {
     var px = Math.floor(Player.getX());
-    var py = Math.floor(Player.getY()) - 1;
+    var py = Math.floor(Player.getY());
     var pz = Math.floor(Player.getZ());
-
     var radius = 6;
-    var totalSteps = Math.floor(20 * (customPI / ORIGINAL_PI));
 
-    clientMessage("§a[Pi Mod] Generating geometry with Pi = " + customPI + "...");
+    for (var x = px - radius; x <= px + radius; x++) {
+        for (var y = py - 2; y <= py + 3; y++) {
+            for (var z = pz - radius; z <= pz + radius; z++) {
+                var tile = Level.getTile(x, y, z);
+                if (tile === 50) { // Torch
+                    Level.setTile(x, y, z, 0); // تدمير الشعلة
+                    Level.addParticle(4, x + 0.5, y + 0.5, z + 0.5, 0, 0, 0, 1);
+                }
+            }
+        }
+    }
+    clientMessage("§0§l[Darkness Falls]");
+}
 
-    for (var i = 0; i < totalSteps; i++) {
-        var angle = (i / totalSteps) * (2 * customPI);
-
-        var bx = px + Math.round(radius * customMathCos(angle));
-        var bz = pz + Math.round(radius * customMathSin(angle));
-
-        Level.setTile(bx, py, bz, 35, 14);
+function configureHerobrineEntity(ent) {
+    if (ent !== null && ent !== undefined) {
+        Entity.setNameTag(ent, "§c§lHerobrine");
+        Entity.setImmobile(ent, true);
+        for (var s = 0; s < 4; s++) {
+            Entity.setArmorItem(ent, s, 0, 0, 0);
+        }
     }
 }
 
-function customMathSin(angle) {
-    var factor = ORIGINAL_PI / customPI;
-    return Math.sin(angle * factor);
+function lookAtPlayer(ent) {
+    if (ent === null || ent === undefined) return;
+    var px = Player.getX();
+    var pz = Player.getZ();
+    var hx = Entity.getX(ent);
+    var hz = Entity.getZ(ent);
+
+    if (hx !== undefined) {
+        var dx = px - hx;
+        var dz = pz - hz;
+        var yaw = Math.atan2(dz, dx) * (180 / Math.PI) - 90;
+        Entity.setRot(ent, 0, yaw);
+    }
 }
 
-function customMathCos(angle) {
-    var factor = ORIGINAL_PI / customPI;
-    return Math.cos(angle * factor);
-                               }
+function vanishHerobrine() {
+    if (herobrineEntity !== null) {
+        var hx = Entity.getX(herobrineEntity);
+        var hy = Entity.getY(herobrineEntity);
+        var hz = Entity.getZ(herobrineEntity);
+
+        if (hx !== undefined) {
+            for (var i = 0; i < 20; i++) {
+                Level.addParticle(4, hx + (Math.random() - 0.5), hy + 1, hz + (Math.random() - 0.5), 0, 0, 0, 1);
+            }
+        }
+        Entity.remove(herobrineEntity);
+        herobrineEntity = null;
+    }
+}
+
+function removeHerobrine() {
+    if (herobrineEntity !== null) {
+        Entity.remove(herobrineEntity);
+        herobrineEntity = null;
+    }
+}
+
+function removeAllClones() {
+    for (var i = 0; i < clonesList.length; i++) {
+        if (clonesList[i] !== null) {
+            Entity.remove(clonesList[i]);
+        }
+    }
+    clonesList = [];
+    }
+                                      
