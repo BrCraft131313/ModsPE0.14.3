@@ -1,8 +1,8 @@
 # ModsPE0.14.3
-# Logo
+## Logo
 [![](https://raw.githubusercontent.com/BrCraft131313/BrCraft131313/main/ModsPELogo.png)](https://github.com/BrCraft131313/ModsPE0.14.3/)
 
-# Description
+## Description
 This is A Repository For Minecraft PE 0.14.3 Mods
 Since most players of this version want mods but know there are few, I created this repository to gather all my mods for this version
 
@@ -10,11 +10,11 @@ You can contribute to this repository at least by translating Arabic (Or English
 
 If you notice me disappearing for a long or relatively long period, take the developer guide file and use AI to help you create mods.
 
-# He started 
+## He started 
 
 24/7/2026
 
-# To Use This Script (modspe0.14.3-projectupdate.sh)
+## To Use This Script (modspe0.14.3-projectupdate.sh)
 
 Download Termux From F-Droid 
 
@@ -26,18 +26,10 @@ Write chmod +x modspe0.14.3-projectupdate.sh && bash modspe0.14.3-projectupdate.
 
 Then Enjoy!
 
-# The Releases 
+## The Releases 
 [The Releases](https://github.com/BrCraft131313/ModsPE0.14.3/releases)
 
-modspe0.14.3-devguide/easy.txt -> Dev Guide File
-
-modspe0.14.3-mainline.js -> Mainline Mod 
-
-modspe0.14.3-projectupdate.sh -> Bash Script For Update/Download/Restore Mods
-
-The rest is known
-
-# Social Media 
+## Social Media 
 ModsPE0.14.3:
 https://github.com/BrCraft131313/ModsPE0.14.3
 
