@@ -1,4 +1,7 @@
 # ModsPE0.14.3
+# Unfortunately 
+My Pad I won't be able to charge it tomorrow, and it's the device I built all my mods on. I'll archive the warehouse so it doesn't get lost, but this project will stay in my heart and I'll bring it back when I get a new cable or a new device. Goodbye, BrCraft131313 24 July 2026 - 28 September 2026
+
 ## Suggestions 
 Please Write Any Suggestions 
 If there are any errors or suggestions, please let me know and I will agree if it benefits Minecraft 0.14.3 
