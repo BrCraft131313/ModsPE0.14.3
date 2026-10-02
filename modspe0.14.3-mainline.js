@@ -1,5 +1,5 @@
 /* ==========================================================================
-   المود: مود النباتي (Vegetarian Mod)
+   المود: مود آكل اللحوم (Carnivore Mod)
    معيار MECANE: الرسائل بالإنجليزية، التعليقات بالعربية، بدون إيموجيات
    ========================================================================== */
 
@@ -30,15 +30,16 @@ function modTick() {
 
     // فحص نقص كمية الأكل في اليد (دليل على إتمام عملية الأكل)
     if (currentItem == lastCarriedItem && currentCount < lastCount) {
-        if (isMeat(currentItem)) {
+        if (isPlant(currentItem)) {
+            // أكل النباتات يؤدي إلى الموت الفوري
             Entity.setHealth(player, 0);
-            clientMessage("[Vegetarian] You ate meat! Vegetarians cannot eat meat.");
-        } else if (isPlant(currentItem)) {
+            clientMessage("[Carnivore] You ate plants! Carnivores cannot eat plants.");
+        } else if (isMeat(currentItem)) {
             var maxHealth = 20;
             
-            // إرجاع القلوب بالكامل للحد الأقصى
+            // أكل اللحوم يعيد القلوب بالكامل للحد الأقصى
             Entity.setHealth(player, maxHealth);
-            clientMessage("[Vegetarian] Healthy plant food! Health fully restored.");
+            clientMessage("[Carnivore] Delicious meat! Health fully restored.");
         }
     }
 
