@@ -1,51 +1,47 @@
 /* ==========================================================================
-   المود: توتم الخلود (Totem of Undying)
+   المود: مود النباتي (Vegetarian Mod)
    معيار MECANE: الرسائل بالإنجليزية، التعليقات بالعربية، بدون إيموجيات
    ========================================================================== */
 
-// --------------------------------------------------------------------------
-// 1. تعريف العنصر ووصفة الصنع
-// --------------------------------------------------------------------------
-ModPE.setItem(517, "gold_ingot", 0, "Totem of Undying", 1);
+var meatIds = [363, 366, 319, 320, 364, 411, 412, 423, 424, 349, 350, 460, 461, 462, 367];
+var plantIds = [260, 322, 297, 391, 392, 393, 396, 360, 457, 459, 282, 354];
 
-Item.addShapedRecipe(517, 1, 0, [
-    "EEE",
-    "EGE",
-    "EEE"
-], ["E", 388, 0, "G", 266, 0]);
+var lastCarriedItem = 0;
+var lastCount = 0;
 
-
-// --------------------------------------------------------------------------
-// 2. دالة حساب عدد التوتمات في حقيبة اللاعب
-// --------------------------------------------------------------------------
-function getTotemCount() {
-    var count = 0;
-    for (var slot = 0; slot < 45; slot++) {
-        if (Player.getInventorySlot(slot) == 517) {
-            count += Player.getInventorySlotCount(slot);
-        }
+function isMeat(id) {
+    for (var i = 0; i < meatIds.length; i++) {
+        if (meatIds[i] == id) return true;
     }
-    return count;
+    return false;
 }
 
+function isPlant(id) {
+    for (var i = 0; i < plantIds.length; i++) {
+        if (plantIds[i] == id) return true;
+    }
+    return false;
+}
 
-// --------------------------------------------------------------------------
-// 3. حدث التعرض للضرر وزيادة القلوب
-// --------------------------------------------------------------------------
-function entityHurtHook(attacker, victim, halfHearts) {
-    if (victim == Player.getEntity()) {
-        var totemCount = getTotemCount();
-        if (totemCount > 0) {
-            var player = Player.getEntity();
-            var currentHealth = Entity.getHealth(player);
+function modTick() {
+    var player = Player.getEntity();
+    var currentItem = Player.getCarriedItem();
+    var currentCount = Player.getCarriedItemCount();
+
+    // فحص نقص كمية الأكل في اليد (دليل على إتمام عملية الأكل)
+    if (currentItem == lastCarriedItem && currentCount < lastCount) {
+        if (isMeat(currentItem)) {
+            Entity.setHealth(player, 0);
+            clientMessage("[Vegetarian] You ate meat! Vegetarians cannot eat meat.");
+        } else if (isPlant(currentItem)) {
             var maxHealth = 20;
             
-            // إضافة قلب كامل (2 نقطة صحة) لكل توتم يمتلكه اللاعب
-            var healAmount = totemCount * 2;
-            var newHealth = Math.min(maxHealth, currentHealth + healAmount);
-            
-            Entity.setHealth(player, newHealth);
-            clientMessage("[Totem] Active! Restored " + (healAmount / 2) + " hearts based on " + totemCount + " Totems.");
+            // إرجاع القلوب بالكامل للحد الأقصى
+            Entity.setHealth(player, maxHealth);
+            clientMessage("[Vegetarian] Healthy plant food! Health fully restored.");
         }
     }
+
+    lastCarriedItem = currentItem;
+    lastCount = currentCount;
 }
