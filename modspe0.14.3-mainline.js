@@ -1,63 +1,51 @@
-// ==========================================
-// ModPE Script: SlimeBoots.js (Dynamic Height Bounce)
-// Minecraft PE 0.14.3
-// ==========================================
+/* ==========================================================================
+   المود: توتم الخلود (Totem of Undying)
+   معيار MECANE: الرسائل بالإنجليزية، التعليقات بالعربية، بدون إيموجيات
+   ========================================================================== */
 
-var highestY = 0;
-var needBounce = false;
-var bounceVelY = 0;
+// --------------------------------------------------------------------------
+// 1. تعريف العنصر ووصفة الصنع
+// --------------------------------------------------------------------------
+ModPE.setItem(517, "gold_ingot", 0, "Totem of Undying", 1);
 
-function modTick() {
-    var player = Player.getEntity();
-    var currentY = Entity.getY(player);
-    var velY = Entity.getVelY(player);
+Item.addShapedRecipe(517, 1, 0, [
+    "EEE",
+    "EGE",
+    "EEE"
+], ["E", 388, 0, "G", 266, 0]);
 
-    // إذا كان اللاعب واقفا أو صاعداً للأعلى، نحدث أعلى نقطة باستمرار
-    if (velY >= -0.05) {
-        highestY = currentY;
-    } else {
-        // أثناء السقوط، نحفظ أعلى ارتفاع تم الوصول إليه
-        highestY = Math.max(highestY, currentY);
+
+// --------------------------------------------------------------------------
+// 2. دالة حساب عدد التوتمات في حقيبة اللاعب
+// --------------------------------------------------------------------------
+function getTotemCount() {
+    var count = 0;
+    for (var slot = 0; slot < 45; slot++) {
+        if (Player.getInventorySlot(slot) == 517) {
+            count += Player.getInventorySlotCount(slot);
+        }
     }
-
-    // تنفيذ الارتداد في الفريم التالي داخل modTick
-    if (needBounce) {
-        Entity.setVelY(player, bounceVelY);
-        
-        // إظهار تأثير جسيمات السلايم (ID 16)
-        var px = Entity.getX(player);
-        var py = Entity.getY(player);
-        var pz = Entity.getZ(player);
-        Level.addParticle(16, px, py, pz, 0, 0.1, 0, 20);
-        
-        // إعادة تعيين المتغيرات
-        needBounce = false;
-        bounceVelY = 0;
-        highestY = Entity.getY(player);
-    }
+    return count;
 }
 
-function entityHurtHook(attacker, victim, hearts) {
+
+// --------------------------------------------------------------------------
+// 3. حدث التعرض للضرر وزيادة القلوب
+// --------------------------------------------------------------------------
+function entityHurtHook(attacker, victim, halfHearts) {
     if (victim == Player.getEntity()) {
-        
-        // جلب ID الحذاء (3 = Boots)
-        var bootsId = Player.getArmorSlot(3);
-
-        // إذا كان يرتدي حذاء الألماس المخصص (313)
-        if (bootsId == 313) {
+        var totemCount = getTotemCount();
+        if (totemCount > 0) {
+            var player = Player.getEntity();
+            var currentHealth = Entity.getHealth(player);
+            var maxHealth = 20;
             
-            // 1. إلغاء ضرر السقوط تماماً
-            preventDefault();
-
-            var currentY = Entity.getY(victim);
-            // حساب فرق الارتفاع: (أعلى ارتفاع - الارتفاع الحالي عند الاصطدام)
-            var fallDistance = highestY - currentY;
-
-            if (fallDistance > 1) {
-                // تحويل مسافة السقوط لسرعة دفع رأسية تعيدك لقمة الارتفاع
-                bounceVelY = Math.sqrt(0.15 * fallDistance);
-                needBounce = true;
-            }
+            // إضافة قلب كامل (2 نقطة صحة) لكل توتم يمتلكه اللاعب
+            var healAmount = totemCount * 2;
+            var newHealth = Math.min(maxHealth, currentHealth + healAmount);
+            
+            Entity.setHealth(player, newHealth);
+            clientMessage("[Totem] Active! Restored " + (healAmount / 2) + " hearts based on " + totemCount + " Totems.");
         }
     }
 }
