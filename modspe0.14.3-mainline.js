@@ -1,85 +1,52 @@
 /* ==========================================================================
-   المود: تسمية الكائنات (NameTag GUI Mod) - النسخة المصححة
+   المود: استدعاء دائرة TNT عند رمي سنارة الصيد
    ========================================================================== */
 
-var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
-var targetMob = -1;
-var isDialogOpen = false; // حماية لمنع تكرار فتح النافذة
+// القطر الافتراضي للدائرة
+var tntDiameter = 10;
 
-ModPE.setItem(518, "name_tag", 0, "NameTag", 64);
-
-function attackHook(attacker, victim) {
-    if (attacker == Player.getEntity() && Player.getCarriedItem() == 518) {
-        if (Entity.isSneaking(attacker)) {
-            // إذا كانت هناك نافذة مفتوحة بالفعل، تجاهل الضربة الثانية
-            if (isDialogOpen) return;
-
-            targetMob = victim;
-            isDialogOpen = true;
-
-            showNameDialog();
-
-            var currentHp = Entity.getHealth(victim);
-            Entity.setHealth(victim, currentHp + 1);
-
-            if (typeof preventDefault === "function") {
-                preventDefault(); 
+// 1. التعامل مع أمر الضبط /tntring <circlediameter>
+function procCmd(cmd) {
+    var args = cmd.split(" ");
+    
+    if (args[0] === "tntring") {
+        if (args.length > 1 && !isNaN(args[1])) {
+            var val = parseInt(args[1]);
+            if (val > 0) {
+                tntDiameter = val;
+                clientMessage("[TNTRing] Circle diameter set to: " + tntDiameter);
+            } else {
+                clientMessage("[TNTRing] Error: Diameter must be greater than 0.");
             }
         } else {
-            clientMessage("[NameTag] You must sneak (shift) to name this mob!");
+            clientMessage("[TNTRing] Usage: /tntring <circlediameter>");
         }
     }
 }
 
-function showNameDialog() {
-    ctx.runOnUiThread(new java.lang.Runnable({
-        run: function() {
-            try {
-                var layout = new android.widget.LinearLayout(ctx);
-                layout.setOrientation(1);
-                layout.setPadding(50, 40, 50, 40);
+// 2. اكتشاف رمي سنارة الصيد وتوليد دائرة الـ TNT
+function entityAddedHook(entity) {
+    // المعرف 77 يمثل خطاف سنارة الصيد عند إطلاقه
+    if (Entity.getEntityTypeId(entity) == 77) {
+        var player = Player.getEntity();
+        var px = Entity.getX(player);
+        var py = Entity.getY(player);
+        var pz = Entity.getZ(player);
+        var spawnY = py + 10; // الارتفاع المطلوب 10 فوق اللاعب
 
-                var input = new android.widget.EditText(ctx);
-                input.setHint("Enter mob name...");
-                layout.addView(input);
+        var radius = tntDiameter / 2;
+        // حساب عدد الكائنات بناءً على القطر لتغطية الدائرة بشكل متناسق
+        var tntCount = Math.max(8, Math.floor(Math.PI * tntDiameter));
 
-                var dialog = new android.app.AlertDialog.Builder(ctx);
-                dialog.setTitle("Set NameTag");
-                dialog.setView(layout);
+        for (var i = 0; i < tntCount; i++) {
+            var angle = (i / tntCount) * 2 * Math.PI;
+            var x = px + radius * Math.cos(angle);
+            var z = pz + radius * Math.sin(angle);
 
-                dialog.setPositiveButton("Enter", new android.content.DialogInterface.OnClickListener({
-                    onClick: function(dialogInterface, i) {
-                        // تحويل كائن جافا إلى نص جافاسكريبت صريح
-                        var newName = ("" + input.getText()).trim();
-
-                        if (targetMob != -1 && newName.length > 0) {
-                            Entity.setNameTag(targetMob, newName);
-                            clientMessage("[NameTag] Mob successfully named: " + newName);
-                        } else if (newName.length === 0) {
-                            clientMessage("[NameTag] Name cannot be empty.");
-                        } else {
-                            clientMessage("[NameTag] Target mob lost!");
-                        }
-
-                        // إعادة ضبط الحالة بعد الانتهاء
-                        targetMob = -1;
-                        isDialogOpen = false;
-                    }
-                }));
-
-                dialog.setNegativeButton("Cancel", new android.content.DialogInterface.OnClickListener({
-                    onClick: function(dialogInterface, i) {
-                        targetMob = -1;
-                        isDialogOpen = false;
-                    }
-                }));
-
-                dialog.show();
-            } catch (e) {
-                clientMessage("GUI Error: " + e);
-                targetMob = -1;
-                isDialogOpen = false;
-            }
+            // إرسال TNT مشتعل (المعرف 65) على ارتفاع 10 فوق اللاعب
+            Level.spawnMob(x, spawnY, z, 65);
         }
-    }));
-                              }
+
+        clientMessage("[TNTRing] TNT ring spawned at height +10 with diameter " + tntDiameter + "!");
+    }
+}
