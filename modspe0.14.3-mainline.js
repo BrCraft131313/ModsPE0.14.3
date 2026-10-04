@@ -1,16 +1,16 @@
 /* ==========================================================================
-   المود: ساعة التحكم بالوقت (Time Controller Clock)
+   المود: خوذة الرؤية الليلية (Night Vision Helmet)
    ========================================================================== */
 
-function useItem(x, y, z, itemid, blockid, side, itemdamage, blockdamage) {
-    // عند استخدام عنصر الساعة (ID 347)
-    if (itemid == 347) {
-        if (Level.getTime() % 24000 < 12000) {
-            Level.setTime(14000);
-            clientMessage("[Time Clock] Time set to Night!");
-        } else {
-            Level.setTime(0);
-            clientMessage("[Time Clock] Time set to Day!");
-        }
+function modTick() {
+    if (Level.getTime() % 20 != 0) return;
+
+    var player = Player.getEntity();
+    // فحص الخوذة المرتداة في الخانة الأولى (Slot 0) باستخدام Player.getArmorSlot
+    var helmet = Player.getArmorSlot(0);
+
+    // إذا كانت الخوذة ألماسية (310) أو سلسلة (302)
+    if (helmet == 310 || helmet == 302) {
+        Entity.addEffect(player, 16, 300, 0, false, true);
     }
 }
