@@ -1,41 +1,20 @@
 /* ==========================================================================
-   المود: تطبيق تأثير الويذر عند الاقتراب من زهرة البوبي (Poppy)
+   المود: قطع الأشجار السريع (Tree Capitator)
    ========================================================================== */
 
-var POPPY_ID = 38;         // معرف البلوك للزهرة الحمراء (Red Flower)
-var WITHER_EFFECT_ID = 20; // معرف تأثير الويذر (Wither)
-
-function modTick() {
-    // الفحص كل 10 تيكس للتحسين وتقليل استهلاك الموارد
-    if (Level.getTime() % 10 != 0) return;
-
-    var player = Player.getEntity();
-    var px = Math.floor(Entity.getX(player));
-    var py = Math.floor(Entity.getY(player));
-    var pz = Math.floor(Entity.getZ(player));
-
-    var radius = 2; // نطاق القرب حول اللاعب (بلوكتين)
-    var isNearPoppy = false;
-
-    // فحص البلوكات المحيطة باللاعب
-    for (var x = px - radius; x <= px + radius; x++) {
-        for (var y = py - 1; y <= py + 2; y++) {
-            for (var z = pz - radius; z <= pz + radius; z++) {
-                
-                // التحقق من وجود الزهرة وتأكيد القيمة الفرعية لزهرة البوبي (Data = 0)
-                if (Level.getTile(x, y, z) == POPPY_ID && Level.getData(x, y, z) == 0) {
-                    isNearPoppy = true;
-                    break;
-                }
+function destroyBlock(x, y, z, side) {
+    var blockId = Level.getTile(x, y, z);
+    var item = Player.getCarriedItem();
+    
+    // التحقق من أن البلوك المكسور خشب وأن اللاعب يحمل فأس (حديد، ماس، خشب، حجر، ذهب)
+    if ((blockId == 17 || blockId == 162) && (item == 258 || item == 271 || item == 275 || item == 279 || item == 286)) {
+        for (var ny = y + 1; ny <= y + 15; ny++) {
+            var currentBlock = Level.getTile(x, ny, z);
+            if (currentBlock == 17 || currentBlock == 162) {
+                Level.destroyBlock(x, ny, z, true);
+            } else {
+                break;
             }
-            if (isNearPoppy) break;
         }
-        if (isNearPoppy) break;
-    }
-
-    // تطبيق التأثير عند القرب من الزهرة
-    if (isNearPoppy) {
-        // إضافة تأثير الويذر لمدة 5 ثوانٍ (100 تيكس) وبمستوى 1 (Amplifier = 0)
-        Entity.addEffect(player, WITHER_EFFECT_ID, 100, 0, false, true);
     }
 }
