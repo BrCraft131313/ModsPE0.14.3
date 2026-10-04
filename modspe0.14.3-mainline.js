@@ -1,52 +1,82 @@
 /* ==========================================================================
-   المود: استدعاء دائرة TNT عند رمي سنارة الصيد
+   المود: كتاب وقلم (Book and Quill) بصفحة خاصة وواجهة كتابة أندرويد
    ========================================================================== */
 
-// القطر الافتراضي للدائرة
-var tntDiameter = 10;
+// المعرف المكتبي لعنصر Book and Quill
+var BOOK_AND_QUILL_ID = 386;
 
-// 1. التعامل مع أمر الضبط /tntring <circlediameter>
-function procCmd(cmd) {
-    var args = cmd.split(" ");
-    
-    if (args[0] === "tntring") {
-        if (args.length > 1 && !isNaN(args[1])) {
-            var val = parseInt(args[1]);
-            if (val > 0) {
-                tntDiameter = val;
-                clientMessage("[TNTRing] Circle diameter set to: " + tntDiameter);
-            } else {
-                clientMessage("[TNTRing] Error: Diameter must be greater than 0.");
-            }
-        } else {
-            clientMessage("[TNTRing] Usage: /tntring <circlediameter>");
+// 1. تسجيل وتعريف العنصر رسمياً في اللعبة
+ModPE.setItem(BOOK_AND_QUILL_ID, "book_writable", 0, "Book and Quill", 1);
+
+// 2. إضافة العنصر إلى قائمة الإبداعي (Creative Inventory)
+Player.addItemCreativeInv(BOOK_AND_QUILL_ID, 1, 0);
+
+// تخزين النصوص المكتوبة بربطها بمعرّف الكتاب الفريد
+var booksData = {};
+
+// عداد توليد معرّفات فريدة للكتب الجديدة
+var nextBookId = 1;
+
+// 3. التفاعل عند استخدام العنصر على بلوك
+function useItem(x, y, z, itemId, blockId, side, itemData) {
+    if (itemId == BOOK_AND_QUILL_ID) {
+        var player = Player.getEntity();
+        var currentData = itemData;
+
+        // إذا كان الكتاب جديداً (Data = 0)، يتم إعطاؤه معرّفاً فريداً
+        if (currentData == 0) {
+            currentData = nextBookId;
+            nextBookId++;
+            // تحديث بيانات العنصر المحمول في يد اللاعب بالمعرف الجديد
+            Entity.setCarriedItem(player, BOOK_AND_QUILL_ID, Player.getCarriedItemCount(), currentData);
         }
+
+        // فتح واجهة الأندرويد للكتابة
+        openBookUI(currentData);
     }
 }
 
-// 2. اكتشاف رمي سنارة الصيد وتوليد دائرة الـ TNT
-function entityAddedHook(entity) {
-    // المعرف 77 يمثل خطاف سنارة الصيد عند إطلاقه
-    if (Entity.getEntityTypeId(entity) == 77) {
-        var player = Player.getEntity();
-        var px = Entity.getX(player);
-        var py = Entity.getY(player);
-        var pz = Entity.getZ(player);
-        var spawnY = py + 10; // الارتفاع المطلوب 10 فوق اللاعب
+// 4. دالة إظهار واجهة الكتابة والحفظ عبر أندرويد UI
+function openBookUI(bookId) {
+    var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
 
-        var radius = tntDiameter / 2;
-        // حساب عدد الكائنات بناءً على القطر لتغطية الدائرة بشكل متناسق
-        var tntCount = Math.max(8, Math.floor(Math.PI * tntDiameter));
+    ctx.runOnUiThread(new java.lang.Runnable({
+        run: function() {
+            try {
+                var builder = new android.app.AlertDialog.Builder(ctx);
+                builder.setTitle("Book and Quill (Page 1)");
 
-        for (var i = 0; i < tntCount; i++) {
-            var angle = (i / tntCount) * 2 * Math.PI;
-            var x = px + radius * Math.cos(angle);
-            var z = pz + radius * Math.sin(angle);
+                // إنشاء حقل النص
+                var input = new android.widget.EditText(ctx);
+                input.setHint("Write your text here...");
 
-            // إرسال TNT مشتعل (المعرف 65) على ارتفاع 10 فوق اللاعب
-            Level.spawnMob(x, spawnY, z, 65);
+                // استرجاع النص الخاص بهذا الكتاب إن وجد
+                if (booksData[bookId]) {
+                    input.setText(booksData[bookId]);
+                }
+
+                builder.setView(input);
+
+                // زر الحفظ Save
+                builder.setPositiveButton("Save", new android.content.DialogInterface.OnClickListener({
+                    onClick: function(dialog, which) {
+                        var text = input.getText().toString();
+                        booksData[bookId] = text;
+                        clientMessage("[Book] Page content saved successfully.");
+                    }
+                }));
+
+                // زر الإلغاء Cancel
+                builder.setNegativeButton("Cancel", new android.content.DialogInterface.OnClickListener({
+                    onClick: function(dialog, which) {
+                        dialog.dismiss();
+                    }
+                }));
+
+                builder.show();
+            } catch (err) {
+                clientMessage("[Book Error] Unable to open editor interface.");
+            }
         }
-
-        clientMessage("[TNTRing] TNT ring spawned at height +10 with diameter " + tntDiameter + "!");
-    }
+    }));
 }
