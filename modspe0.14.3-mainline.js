@@ -1,16 +1,12 @@
 /* ==========================================================================
-   المود: سيف مصاص الدماء (Vampiric Sword)
+   المود: أداة كسر البدروك (Bedrock Breaker)
    ========================================================================== */
 
-function attackHook(attacker, victim) {
-    var player = Player.getEntity();
-    
-    // عند ضرب أي هدف بسيف ألماسي (ID 276) يتم استعادة نقطة صحة
-    if (attacker == player && Player.getCarriedItem() == 276) {
-        var currentHealth = Entity.getHealth(player);
-        if (currentHealth < 20) {
-            Entity.setHealth(player, Math.min(20, currentHealth + 2));
-            clientMessage("[Vampire] Health stolen from target!");
-        }
+function useItem(x, y, z, itemid, blockid, side, itemdamage, blockdamage) {
+    // عند النقر على بلوك البدروك (ID 7) باستخدام معول ألماسي (ID 278)
+    if (blockid == 7 && itemid == 278) {
+        Level.setTile(x, y, z, 0);
+        Level.dropItem(x + 0.5, y + 0.5, z + 0.5, 0, 7, 1, 0);
+        clientMessage("[Bedrock Breaker] Bedrock destroyed!");
     }
 }
