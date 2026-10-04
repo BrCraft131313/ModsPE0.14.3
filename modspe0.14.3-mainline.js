@@ -1,20 +1,16 @@
 /* ==========================================================================
-   المود: الإضاءة التلقائية (Auto Torch)
+   المود: ساعة التحكم بالوقت (Time Controller Clock)
    ========================================================================== */
 
-function modTick() {
-    if (Level.getTime() % 20 != 0) return;
-
-    var player = Player.getEntity();
-    var px = Math.floor(Entity.getX(player));
-    var py = Math.floor(Entity.getY(player));
-    var pz = Math.floor(Entity.getZ(player));
-
-    // وضع شعلة إذا كان المكان مظلماً وكان اللاعب يحمل شعلة في يده
-    if (Level.getBrightness(px, py, pz) < 7 && Level.getTile(px, py, pz) == 0) {
-        if (Player.getCarriedItem() == 50) {
-            Level.setTile(px, py, pz, 50);
-            clientMessage("[Auto Torch] Torch placed automatically!");
+function useItem(x, y, z, itemid, blockid, side, itemdamage, blockdamage) {
+    // عند استخدام عنصر الساعة (ID 347)
+    if (itemid == 347) {
+        if (Level.getTime() % 24000 < 12000) {
+            Level.setTime(14000);
+            clientMessage("[Time Clock] Time set to Night!");
+        } else {
+            Level.setTime(0);
+            clientMessage("[Time Clock] Time set to Day!");
         }
     }
 }
