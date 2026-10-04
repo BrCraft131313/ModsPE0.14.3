@@ -1,20 +1,16 @@
 /* ==========================================================================
-   المود: قطع الأشجار السريع (Tree Capitator)
+   المود: سيف مصاص الدماء (Vampiric Sword)
    ========================================================================== */
 
-function destroyBlock(x, y, z, side) {
-    var blockId = Level.getTile(x, y, z);
-    var item = Player.getCarriedItem();
+function attackHook(attacker, victim) {
+    var player = Player.getEntity();
     
-    // التحقق من أن البلوك المكسور خشب وأن اللاعب يحمل فأس (حديد، ماس، خشب، حجر، ذهب)
-    if ((blockId == 17 || blockId == 162) && (item == 258 || item == 271 || item == 275 || item == 279 || item == 286)) {
-        for (var ny = y + 1; ny <= y + 15; ny++) {
-            var currentBlock = Level.getTile(x, ny, z);
-            if (currentBlock == 17 || currentBlock == 162) {
-                Level.destroyBlock(x, ny, z, true);
-            } else {
-                break;
-            }
+    // عند ضرب أي هدف بسيف ألماسي (ID 276) يتم استعادة نقطة صحة
+    if (attacker == player && Player.getCarriedItem() == 276) {
+        var currentHealth = Entity.getHealth(player);
+        if (currentHealth < 20) {
+            Entity.setHealth(player, Math.min(20, currentHealth + 2));
+            clientMessage("[Vampire] Health stolen from target!");
         }
     }
 }
