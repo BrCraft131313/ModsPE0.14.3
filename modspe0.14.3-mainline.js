@@ -1,16 +1,22 @@
 /* ==========================================================================
-   المود: خوذة الرؤية الليلية (Night Vision Helmet)
+   المود: أداة القبض على الموبس (Mob Catcher Egg)
    ========================================================================== */
 
-function modTick() {
-    if (Level.getTime() % 20 != 0) return;
-
+function attackHook(attacker, victim) {
     var player = Player.getEntity();
-    // فحص الخوذة المرتداة في الخانة الأولى (Slot 0) باستخدام Player.getArmorSlot
-    var helmet = Player.getArmorSlot(0);
 
-    // إذا كانت الخوذة ألماسية (310) أو سلسلة (302)
-    if (helmet == 310 || helmet == 302) {
-        Entity.addEffect(player, 16, 300, 0, false, true);
+    // عند ضرب الكائن باستخدام بيضة عادية (ID 344)
+    if (attacker == player && Player.getCarriedItem() == 344) {
+        var typeId = Entity.getEntityTypeId(victim);
+
+        if (typeId > 0 && typeId != 63) {
+            var x = Entity.getX(victim);
+            var y = Entity.getY(victim);
+            var z = Entity.getZ(victim);
+
+            Entity.remove(victim);
+            Level.dropItem(x, y, z, 0, 383, 1, typeId);
+            clientMessage("[Mob Catcher] Mob caught into spawn egg!");
+        }
     }
 }
