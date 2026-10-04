@@ -1,22 +1,66 @@
 /* ==========================================================================
-   المود: أداة القبض على الموبس (Mob Catcher Egg)
+   المود: طاولة التصنيع المحمولة (Portable Workbench)
    ========================================================================== */
 
-function attackHook(attacker, victim) {
-    var player = Player.getEntity();
+var tempWorkbenchX = null;
+var tempWorkbenchY = null;
+var tempWorkbenchZ = null;
 
-    // عند ضرب الكائن باستخدام بيضة عادية (ID 344)
-    if (attacker == player && Player.getCarriedItem() == 344) {
-        var typeId = Entity.getEntityTypeId(victim);
+// دالة إرجاع البلوك الأصلي وإزالة طاولة التصنيع المؤقتة
+function restoreTempBlock() {
+    if (tempWorkbenchX !== null) {
+        Level.setTile(tempWorkbenchX, tempWorkbenchY, tempWorkbenchZ, 0);
+        tempWorkbenchX = null;
+        tempWorkbenchY = null;
+        tempWorkbenchZ = null;
+    }
+}
 
-        if (typeId > 0 && typeId != 63) {
-            var x = Entity.getX(victim);
-            var y = Entity.getY(victim);
-            var z = Entity.getZ(victim);
+function useItem(x, y, z, itemid, blockid, side, itemdamage, blockdamage) {
+    // عند الضغط باستخدام عنصر طاولة التصنيع (ID 58)
+    if (itemid == 58) {
+        var targetX = x;
+        var targetY = y;
+        var targetZ = z;
 
-            Entity.remove(victim);
-            Level.dropItem(x, y, z, 0, 383, 1, typeId);
-            clientMessage("[Mob Catcher] Mob caught into spawn egg!");
+        // تحديد موقع وضع الطاولة بناءً على الوجه المجهد (Side)
+        if (side == 0) targetY--;
+        else if (side == 1) targetY++;
+        else if (side == 2) targetZ--;
+        else if (side == 3) targetZ++;
+        else if (side == 4) targetX--;
+        else if (side == 5) targetX++;
+
+        // وضع طاولة تصنيع مؤقتة في المكان الفارغ
+        if (Level.getTile(targetX, targetY, targetZ) == 0) {
+            restoreTempBlock();
+
+            tempWorkbenchX = targetX;
+            tempWorkbenchY = targetY;
+            tempWorkbenchZ = targetZ;
+
+            Level.setTile(targetX, targetY, targetZ, 58);
+            clientMessage("[Workbench] Temporary workbench placed! Tap it to craft.");
+        }
+    }
+}
+
+function modTick() {
+    // تنظيف وإزالة طاولة التصنيع المؤقتة عند ابتعاد اللاعب أكثر من 4 بلوكات
+    if (tempWorkbenchX !== null && Level.getTime() % 10 == 0) {
+        var player = Player.getEntity();
+        var px = Entity.getX(player);
+        var py = Entity.getY(player);
+        var pz = Entity.getZ(player);
+
+        var dx = px - tempWorkbenchX;
+        var dy = py - tempWorkbenchY;
+        var dz = pz - tempWorkbenchZ;
+        var distSq = dx * dx + dy * dy + dz * dz;
+
+        if (distSq > 16) {
+            restoreTempBlock();
+            clientMessage("[Workbench] Temporary workbench removed.");
         }
     }
 }
