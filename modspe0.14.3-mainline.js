@@ -1,82 +1,102 @@
 /* ==========================================================================
-   المود: كتاب وقلم (Book and Quill) بصفحة خاصة وواجهة كتابة أندرويد
+   المود: الخنزير الطائر المسالم - الحصانة التامة وإمكانية الطيران
    ========================================================================== */
 
-// المعرف المكتبي لعنصر Book and Quill
-var BOOK_AND_QUILL_ID = 386;
+var PIG_ID = 12;
+var riddenPig = -1;
 
-// 1. تسجيل وتعريف العنصر رسمياً في اللعبة
-ModPE.setItem(BOOK_AND_QUILL_ID, "book_writable", 0, "Book and Quill", 1);
+// دالة فحص ما إذا كان الكائن في الهواء
+function isEntityInAir(ent) {
+    var x = Math.floor(Entity.getX(ent));
+    var y = Math.floor(Entity.getY(ent) - 0.1);
+    var z = Math.floor(Entity.getZ(ent));
+    return Level.getTile(x, y, z) === 0;
+}
 
-// 2. إضافة العنصر إلى قائمة الإبداعي (Creative Inventory)
-Player.addItemCreativeInv(BOOK_AND_QUILL_ID, 1, 0);
-
-// تخزين النصوص المكتوبة بربطها بمعرّف الكتاب الفريد
-var booksData = {};
-
-// عداد توليد معرّفات فريدة للكتب الجديدة
-var nextBookId = 1;
-
-// 3. التفاعل عند استخدام العنصر على بلوك
-function useItem(x, y, z, itemId, blockId, side, itemData) {
-    if (itemId == BOOK_AND_QUILL_ID) {
-        var player = Player.getEntity();
-        var currentData = itemData;
-
-        // إذا كان الكتاب جديداً (Data = 0)، يتم إعطاؤه معرّفاً فريداً
-        if (currentData == 0) {
-            currentData = nextBookId;
-            nextBookId++;
-            // تحديث بيانات العنصر المحمول في يد اللاعب بالمعرف الجديد
-            Entity.setCarriedItem(player, BOOK_AND_QUILL_ID, Player.getCarriedItemCount(), currentData);
+// 1. حماية الخنزير ومنع إلحاق الضرر
+function entityHurtHook(attacker, victim, halfhearts) {
+    // حماية الخنزير من أي ضرر
+    if (Entity.getEntityTypeId(victim) == PIG_ID) {
+        if (typeof preventDefault === "function") {
+            preventDefault();
         }
-
-        // فتح واجهة الأندرويد للكتابة
-        openBookUI(currentData);
+    }
+    // منع الخنزير من إلحاق الضرر
+    if (Entity.getEntityTypeId(attacker) == PIG_ID) {
+        if (typeof preventDefault === "function") {
+            preventDefault();
+        }
     }
 }
 
-// 4. دالة إظهار واجهة الكتابة والحفظ عبر أندرويد UI
-function openBookUI(bookId) {
-    var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
+function attackHook(attacker, victim) {
+    var player = Player.getEntity();
+    
+    // عند ضرب/الضغط على الخنزير يتم ركوبه
+    if (attacker == player && Entity.getEntityTypeId(victim) == PIG_ID) {
+        riddenPig = victim;
+        Entity.rideAnimal(player, victim);
+        
+        if (typeof preventDefault === "function") {
+            preventDefault();
+        }
+        
+        clientMessage("[FlyingPig] Riding Pig! Look around to fly, Sneak (Shift) to dismount.");
+    }
+}
 
-    ctx.runOnUiThread(new java.lang.Runnable({
-        run: function() {
-            try {
-                var builder = new android.app.AlertDialog.Builder(ctx);
-                builder.setTitle("Book and Quill (Page 1)");
+function modTick() {
+    var player = Player.getEntity();
+    var allEntities = Entity.getAll();
 
-                // إنشاء حقل النص
-                var input = new android.widget.EditText(ctx);
-                input.setHint("Write your text here...");
+    // 2. تعبئة صحة الخنازير وإعادتها للأرض إذا كانت معلقة
+    for (var i = 0; i < allEntities.length; i++) {
+        var ent = allEntities[i];
+        if (Entity.getEntityTypeId(ent) == PIG_ID) {
 
-                // استرجاع النص الخاص بهذا الكتاب إن وجد
-                if (booksData[bookId]) {
-                    input.setText(booksData[bookId]);
-                }
+            // تعبئة صحة الخنزير للحد الأقصى
+            Entity.setHealth(ent, 10);
 
-                builder.setView(input);
-
-                // زر الحفظ Save
-                builder.setPositiveButton("Save", new android.content.DialogInterface.OnClickListener({
-                    onClick: function(dialog, which) {
-                        var text = input.getText().toString();
-                        booksData[bookId] = text;
-                        clientMessage("[Book] Page content saved successfully.");
-                    }
-                }));
-
-                // زر الإلغاء Cancel
-                builder.setNegativeButton("Cancel", new android.content.DialogInterface.OnClickListener({
-                    onClick: function(dialog, which) {
-                        dialog.dismiss();
-                    }
-                }));
-
-                builder.show();
-            } catch (err) {
-                clientMessage("[Book Error] Unable to open editor interface.");
+            // إعادة الخنزير للأرض إذا كان معلقاً في الهواء وغير مركب
+            if (ent != riddenPig && isEntityInAir(ent)) {
+                Entity.setVelY(ent, -0.2);
             }
         }
-    }));
+    }
+
+    // 3. التحكم بالطيران والنزول
+    if (riddenPig != -1) {
+        
+        // عند النزول (Shift) أو موت الخنزير
+        if (Entity.isSneaking(player) || Entity.getHealth(riddenPig) <= 0) {
+            var targetPig = riddenPig;
+            riddenPig = -1;
+
+            // فك ارتباط الركوب رسمياً
+            Entity.rideAnimal(player, -1);
+
+            // تصفير جميع السرعات فوراً
+            Entity.setVelX(targetPig, 0);
+            Entity.setVelY(targetPig, 0);
+            Entity.setVelZ(targetPig, 0);
+            return;
+        }
+
+        // حساب اتجاهات الطيران 3D
+        var yaw = Entity.getYaw(player);
+        var pitch = Entity.getPitch(player);
+
+        var yawRad = yaw * Math.PI / 180;
+        var pitchRad = pitch * Math.PI / 180;
+
+        var speed = 0.5;
+
+        var vx = -Math.sin(yawRad) * Math.cos(pitchRad) * speed;
+        var vy = -Math.sin(pitchRad) * speed;
+        var vz = Math.cos(yawRad) * Math.cos(pitchRad) * speed;
+
+        Entity.setVelX(riddenPig, vx);
+        Entity.setVelY(riddenPig, vy);
+        Entity.setVelZ(riddenPig, vz);
+    }
 }
