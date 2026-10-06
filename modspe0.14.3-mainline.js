@@ -1,47 +1,24 @@
 /* ==========================================================================
-   المود: التخطي التلقائي لشاشة الموت (Skip Death Screen / Auto Respawn)
+   المود: زيادة القلوب عند تلقي الضرر (Damage-To-Hearts Immunity Mod for 0.14.3)
+   الوظيفة: منع الموت وزيادة الحد الأقصى للقلوب عند كل محاولة إلحاق ضرر باللاعب
    ========================================================================== */
 
-// متغيرات تخزين إحداثيات الرسبون
-var defaultSpawnX = null;
-var defaultSpawnY = null;
-var defaultSpawnZ = null;
+var HEARTS_ADDITION_PER_HIT = 2; // عدد القلوب المضافة عند كل ضربة (كل قلب = 2 نقطة صحة)
 
-function modTick() {
-    // التقاط موقع اللاعب الأولي كـ Spawn عند بدء تشغيل العالم
-    if (defaultSpawnX === null) {
-        var player = Player.getEntity();
-        defaultSpawnX = Entity.getX(player);
-        defaultSpawnY = Entity.getY(player);
-        defaultSpawnZ = Entity.getZ(player);
-    }
-}
-
-function entityHurtHook(attacker, victim, halfhearts) {
-    var player = Player.getEntity();
-
+function entityHurtHook(attacker, victim, damage) {
     // التحقق من أن الكائن المتضرر هو اللاعب
-    if (victim == player) {
-        var currentHealth = Entity.getHealth(player);
+    if (victim == Player.getEntity()) {
+        preventDefault(); // إلغاء الضرر القادم لمنع الموت المفاجئ
 
-        // إذا كان الضرر الموجه كافياً للقضاء على اللاعب
-        if (currentHealth - halfhearts <= 0) {
-            // إلغاء حدث الضرر الأصلي لمنع ظهور شاشة الموت الرسمية
-            preventDefault();
+        // جلب الحد الأقصى الحالي للصحة وزيادته
+        var currentMaxHealth = Entity.getMaxHealth(victim);
+        var newMaxHealth = currentMaxHealth + (HEARTS_ADDITION_PER_HIT * 2);
 
-            // استعادة صحة اللاعب بالكامل
-            Entity.setHealth(player, 20);
+        // تطبيق الحد الأقصى الجديد وتعبئة القلوب بالكامل
+        Entity.setMaxHealth(victim, newMaxHealth);
+        Entity.setHealth(victim, newMaxHealth);
 
-            // تحديد موقع الإعادة (تُفضل متغيرات Checkpoint إذا كانت معرّفة)
-            var targetX = (typeof lastSpawnX !== "undefined" && lastSpawnX !== null) ? lastSpawnX + 0.5 : defaultSpawnX;
-            var targetY = (typeof lastSpawnY !== "undefined" && lastSpawnY !== null) ? lastSpawnY + 1 : defaultSpawnY;
-            var targetZ = (typeof lastSpawnZ !== "undefined" && lastSpawnZ !== null) ? lastSpawnZ + 0.5 : defaultSpawnZ;
-
-            // نقل اللاعب فوراً إلى نقطة الرسبون
-            Entity.setPosition(player, targetX, targetY, targetZ);
-
-            // إرسال رسالة توضيحية للاعب
-            clientMessage("[Auto Respawn] Death screen skipped! Teleported to spawn point.");
-        }
+        // إرسال رسالة باللغة الإنجليزية وفق معيار MECANE
+        clientMessage("§a[Immunity] Max health increased! Total hearts: " + (newMaxHealth / 2));
     }
 }
