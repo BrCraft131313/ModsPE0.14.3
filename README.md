@@ -14,9 +14,7 @@ GPL3
 # Social Media 
 My TikTok: https://tiktok.com/@brcraft131313
 
-My YouTube: https://m.youtube.com/@brcraft-v8v
-
-https://m.youtube.com/@BrCraft_2
+My YouTube: https://m.youtube.com/@BrCraft_2
 
 My Portfolio: https://brcraft131313.github.io/Portfolio/
 
