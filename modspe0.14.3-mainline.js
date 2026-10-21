@@ -1,37 +1,54 @@
-// ===============================================
-// Coal Ore Crafting Mod
-// Made for ModPE / Minecraft PE 0.14.3
-// ===============================================
+// ==========================================
+// ModPE Script: autofarm-bybrcraft131313.js
+// Target: Minecraft PE 0.14.3
+// ==========================================
 
-// 1. وصفة باستخدام الكبلستون (Cobblestone - ID 4)
-Item.addShapedRecipe(
-    16, 1, 0, // الناتج: بلوكة Coal Ore (ID 16) بعدد 1
-    [
-        "ccc", // السطر الأول: 3 كبلستون
-        "cdc", // السطر الثاني: كبلستون - فحم - كبلستون
-        "ccc"  // السطر الثالث: 3 كبلستون
-    ],
-    [
-        "c", 4, 0,   // الحرف 'c' يرمز للـ Cobblestone (ID 4)
-        "d", 263, 0  // الحرف 'd' يرمز للـ Coal (ID 263)
-    ]
-);
+// تعريف معرف عصا المزرعة التلقائية
+var AUTOFARM_STICK_ID = 537;
 
-// 2. وصفة باستخدام الستون العادي (Stone - ID 1)
-Item.addShapedRecipe(
-    16, 1, 0, // الناتج: بلوكة Coal Ore (ID 16) بعدد 1
-    [
-        "sss", // السطر الأول: 3 ستون
-        "sds", // السطر الثاني: ستون - فحم - ستون
-        "sss"  // السطر الثالث: 3 ستون
-    ],
-    [
-        "s", 1, 0,   // الحرف 's' يرمز للـ Stone (ID 1)
-        "d", 263, 0  // الحرف 'd' يرمز للـ Coal (ID 263)
-    ]
-);
+// تسجيل العصا وإضافتها لحقيبة الألعاب الإبداعية
+ModPE.setItem(AUTOFARM_STICK_ID, "stick", 0, "AutoFarm Stick", 1);
+Player.addItemCreativeInv(AUTOFARM_STICK_ID, 1, 0);
 
-// رسالة توضيحية عند تشغيل المود
+// منح العصا للاعب عند دخول العالم
 function newLevel() {
-    clientMessage("Coal Ore Crafting Mod Enabled!");
+    addItemInventory(AUTOFARM_STICK_ID, 1, 0);
+    clientMessage(">>> AUTOFARM STICK ADDED! TAP ON GROUND TO GENERATE FARM! <<<");
+}
+
+// دالة التفاعل وإنشاء المزرعة التلقائية فور الضغط بالعصا
+function useItem(x, y, z, itemid, blockid, side, itemDamage, blockDamage) {
+    if (itemid === AUTOFARM_STICK_ID) {
+        
+        // أبعاد المزرعة (7x7)
+        var startX = x - 3;
+        var startZ = z - 3;
+        var endX = x + 3;
+        var endZ = z + 3;
+        
+        // بناء الهيكل الخارجي والأرضية المحروثة والمجرى المائي
+        for (var dx = startX; dx <= endX; dx++) {
+            for (var dz = startZ; dz <= endZ; dz++) {
+                
+                // الإطار الخارجي من جذوع الخشب (Oak Log - ID 17)
+                if (dx === startX || dx === endX || dz === startZ || dz === endZ) {
+                    Level.setTile(dx, y, dz, 17, 0);
+                    Level.setTile(dx, y + 1, dz, 0, 0); // تفريغ الهواء فوق الإطار
+                } 
+                // المجرى المائي في خط المنتصف (Water - ID 9)
+                else if (dz === z) {
+                    Level.setTile(dx, y, dz, 9, 0);
+                    Level.setTile(dx, y + 1, dz, 0, 0);
+                } 
+                // باقي المساحة أرض محروثة جاهزة للزراعة (Farmland - ID 60)
+                else {
+                    Level.setTile(dx, y, dz, 60, 7); // 7 تعني أرض محروثة ورطبة
+                    Level.setTile(dx, y + 1, dz, 0, 0);
+                }
+            }
+        }
+        
+        clientMessage(">>> AUTOMATIC FARM GENERATED SUCCESSFULLY! <<<");
+        preventDefault();
+    }
 }
