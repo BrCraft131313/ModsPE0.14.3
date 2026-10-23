@@ -1,54 +1,50 @@
-// ==========================================
-// ModPE Script: autofarm-bybrcraft131313.js
-// Target: Minecraft PE 0.14.3
-// ==========================================
-
-// تعريف معرف عصا المزرعة التلقائية
-var AUTOFARM_STICK_ID = 537;
-
-// تسجيل العصا وإضافتها لحقيبة الألعاب الإبداعية
-ModPE.setItem(AUTOFARM_STICK_ID, "stick", 0, "AutoFarm Stick", 1);
-Player.addItemCreativeInv(AUTOFARM_STICK_ID, 1, 0);
-
-// منح العصا للاعب عند دخول العالم
+// بداية كود المود 
+// بداية كود بداية العالم 
 function newLevel() {
-    addItemInventory(AUTOFARM_STICK_ID, 1, 0);
-    clientMessage(">>> AUTOFARM STICK ADDED! TAP ON GROUND TO GENERATE FARM! <<<");
+    // رسالة توضح اسم المود وصانعه 
+    clientMessage("Welcome To GiveCommand by BrCraft131313!");
 }
+// نهاية كود بداية العالم 
 
-// دالة التفاعل وإنشاء المزرعة التلقائية فور الضغط بالعصا
-function useItem(x, y, z, itemid, blockid, side, itemDamage, blockDamage) {
-    if (itemid === AUTOFARM_STICK_ID) {
-        
-        // أبعاد المزرعة (7x7)
-        var startX = x - 3;
-        var startZ = z - 3;
-        var endX = x + 3;
-        var endZ = z + 3;
-        
-        // بناء الهيكل الخارجي والأرضية المحروثة والمجرى المائي
-        for (var dx = startX; dx <= endX; dx++) {
-            for (var dz = startZ; dz <= endZ; dz++) {
+// بداية مود الإعطاء (GiveMod)
+function procCmd(cmd) {
+    // تقسيم النص المكتوب بناءً على المسافات
+    var args = cmd.split(" ");
+    var mainCmd = args[0];
+
+    // أمر الإعطاء
+    if (mainCmd === "give") {
+        var itemId = parseInt(args[1]);
+        var itemData = parseInt(args[2]);
+        var itemCount = parseInt(args[3]);
+
+        // التأكد من إدخال رقم الـ ID
+        if (!isNaN(itemId)) {
+            // الفحص هل المادة موجودة باللعبة فعلياً
+            if (Item.isValidItem(itemId)) {
                 
-                // الإطار الخارجي من جذوع الخشب (Oak Log - ID 17)
-                if (dx === startX || dx === endX || dz === startZ || dz === endZ) {
-                    Level.setTile(dx, y, dz, 17, 0);
-                    Level.setTile(dx, y + 1, dz, 0, 0); // تفريغ الهواء فوق الإطار
-                } 
-                // المجرى المائي في خط المنتصف (Water - ID 9)
-                else if (dz === z) {
-                    Level.setTile(dx, y, dz, 9, 0);
-                    Level.setTile(dx, y + 1, dz, 0, 0);
-                } 
-                // باقي المساحة أرض محروثة جاهزة للزراعة (Farmland - ID 60)
-                else {
-                    Level.setTile(dx, y, dz, 60, 7); // 7 تعني أرض محروثة ورطبة
-                    Level.setTile(dx, y + 1, dz, 0, 0);
+                // تحديد الـ Data الافتراضي بـ 0 إذا لم يُكتب
+                if (isNaN(itemData) || itemData < 0) {
+                    itemData = 0;
                 }
+
+                // تحديد الكمية الافتراضية بـ 1 إذا لم يكتب المستخدِم كمية
+                if (isNaN(itemCount) || itemCount <= 0) {
+                    itemCount = 1;
+                }
+
+                // إعطاء المادة بالـ Data والكمية المحددة وطباعة الرسالة
+                addItemInventory(itemId, itemCount, itemData);
+                clientMessage("Given item " + itemId + ":" + itemData + " x" + itemCount + " to Player!");
+            } else {
+                // تنبيه في حال كان الـ ID غير موجود
+                clientMessage("Error: Item ID " + itemId + " does not exist!");
             }
+        } else {
+            // رسالة المساعدة في حال أخطأ في الصيغة
+            clientMessage("Usage: /give <id> <data> <quantity>");
         }
-        
-        clientMessage(">>> AUTOMATIC FARM GENERATED SUCCESSFULLY! <<<");
-        preventDefault();
     }
 }
+// نهاية مود الإعطاء
+// نهاية كود المود
