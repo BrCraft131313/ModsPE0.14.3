@@ -1,50 +1,31 @@
-// بداية كود المود 
-// بداية كود بداية العالم 
+// ==========================================
+// ModPE Script: time-widget-bybrcraft131313.js
+// Target: Minecraft PE 0.14.3 - Time Clock System
+// ==========================================
+
 function newLevel() {
-    // رسالة توضح اسم المود وصانعه 
-    clientMessage("Welcome To GiveCommand by BrCraft131313!");
+    clientMessage("§aTime Clock Widget Loaded! Tap with a Clock (ID: 347) to get current time.");
 }
-// نهاية كود بداية العالم 
 
-// بداية مود الإعطاء (GiveMod)
-function procCmd(cmd) {
-    // تقسيم النص المكتوب بناءً على المسافات
-    var args = cmd.split(" ");
-    var mainCmd = args[0];
+// دالة جلب وتنسيق الوقت الحالي تماماً كمنطق الساعة الرقمية
+function getCurrentTimeString() {
+    var now = new Date();
+    var hours = now.getHours();
+    var minutes = String(now.getMinutes());
+    if (minutes.length < 2) { minutes = '0' + minutes; } // بديل لـ padstart لضمان التوافق التام مع بيئة Rhino القديمة
+    
+    var ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    if (hours === 0) { hours = 12; }
+    
+    return hours + ":" + minutes + " " + ampm;
+}
 
-    // أمر الإعطاء
-    if (mainCmd === "give") {
-        var itemId = parseInt(args[1]);
-        var itemData = parseInt(args[2]);
-        var itemCount = parseInt(args[3]);
-
-        // التأكد من إدخال رقم الـ ID
-        if (!isNaN(itemId)) {
-            // الفحص هل المادة موجودة باللعبة فعلياً
-            if (Item.isValidItem(itemId)) {
-                
-                // تحديد الـ Data الافتراضي بـ 0 إذا لم يُكتب
-                if (isNaN(itemData) || itemData < 0) {
-                    itemData = 0;
-                }
-
-                // تحديد الكمية الافتراضية بـ 1 إذا لم يكتب المستخدِم كمية
-                if (isNaN(itemCount) || itemCount <= 0) {
-                    itemCount = 1;
-                }
-
-                // إعطاء المادة بالـ Data والكمية المحددة وطباعة الرسالة
-                addItemInventory(itemId, itemCount, itemData);
-                clientMessage("Given item " + itemId + ":" + itemData + " x" + itemCount + " to Player!");
-            } else {
-                // تنبيه في حال كان الـ ID غير موجود
-                clientMessage("Error: Item ID " + itemId + " does not exist!");
-            }
-        } else {
-            // رسالة المساعدة في حال أخطأ في الصيغة
-            clientMessage("Usage: /give <id> <data> <quantity>");
-        }
+function useItem(x, y, z, itemid, blockid, side, itemdamage, blockdamage) {
+    // عند استخدام الساعة (ID: 347) بالنقر بها في العالم
+    if (itemid == 347) {
+        var currentTime = getCurrentTimeString();
+        // يطبع الوقت الناتج في الشات داخل اللعبة
+        clientMessage("§e[Clock] Current Time: §f" + currentTime);
     }
 }
-// نهاية مود الإعطاء
-// نهاية كود المود
